@@ -225,15 +225,18 @@ function add(it){const w=it.unit&&it.unit!=='pcs';
  const put=q=>{const l=cart.find(c=>c.id===it.id);if(l)l.qty=Math.round((l.qty+q)*1000)/1000;else cart.push({id:it.id,name:it.name,price:it.price,gst:it.gst,unit:it.unit||'pcs',qty:q});$('q').value='';drawBill()};
  if(w)ask('Quantity of '+it.name+' ('+U(it.unit)+')',v=>{const q=parseFloat(v);if(q>0)put(q);else toast('Enter a quantity')},'1');else put(1)}
 const hl=(n,q)=>{const i=q?n.toLowerCase().indexOf(q):-1;return i<0?esc(n):esc(n.slice(0,i))+'<mark style="background:#fde68a;color:#1a1d23;border-radius:3px;padding:0 1px">'+esc(n.slice(i,i+q.length))+'</mark>'+esc(n.slice(i+q.length))};
-function quickPicks(){const c={};db.bills.forEach(b=>b.lines.forEach(l=>c[l.id]=(c[l.id]||0)+1));
- const top=db.items.filter(i=>c[i.id]).sort((a,b)=>c[b.id]-c[a.id]).slice(0,3);return top.length?top:db.items.slice(0,3)}
+function quickPicks(){const wk=Date.now()-7*864e5,cw={},ca={};
+ db.bills.forEach(b=>b.lines.forEach(l=>{ca[l.id]=(ca[l.id]||0)+1;if(b.date>=wk)cw[l.id]=(cw[l.id]||0)+1}));
+ const by=c=>db.items.filter(i=>c[i.id]).sort((a,b)=>c[b.id]-c[a.id]);
+ const out=by(cw).slice(0,3);by(ca).forEach(i=>{if(out.length<3&&!out.includes(i))out.push(i)});
+ db.items.forEach(i=>{if(out.length<3&&!out.includes(i))out.push(i)});return out}
 function drawBill(){const q=$('q').value.trim().toLowerCase();$('res').innerHTML='';
  let L,more=0;
  if(q){const sc=i=>{const n=i.name.toLowerCase();return n.startsWith(q)?0:n.split(/[\s(),-]+/).some(w=>w.startsWith(q))?1:n.includes(q)?2:i.code===q||(i.code||'').includes(q)?0:9};
   const all=db.items.map(i=>[sc(i),i]).filter(x=>x[0]<9).sort((a,b)=>a[0]-b[0]||a[1].name.localeCompare(b[1].name));
   L=all.slice(0,12).map(x=>x[1]);more=all.length-L.length;
   $('qhint').innerHTML=all.length?(all.length+' match'+(all.length>1?'es':'')+' for "<b>'+esc(q)+'</b>" - tap an item to add it'+(more>0?' (showing 12, type more to narrow)':'')):'<span class="low">No item named "'+esc(q)+'". Check the spelling or try a shorter part of the name.</span>'}
- else{L=quickPicks();$('qhint').innerHTML=db.items.length>L.length?'Quick picks. Type a name (or part of it) to see the other '+(db.items.length-L.length)+' items.':(db.items.length?'':'No items yet. Add items in the Items tab.')}
+ else{L=quickPicks();$('qhint').innerHTML=db.items.length>L.length?'Top sellers this week. Type a name (or part of it) to see the other '+(db.items.length-L.length)+' items.':(db.items.length?'':'No items yet. Add items in the Items tab.')}
  L.forEach(i=>{const b=document.createElement('button');b.innerHTML=hl(i.name,q)+' · '+R(i.price);b.onclick=()=>add(i);$('res').append(b)});
  $('cart').innerHTML=cart.length?'':'<div class="mu">Cart is empty. Tap an item above.</div>';
  cart.forEach((l,i)=>{const d=document.createElement('div');d.className='row';
