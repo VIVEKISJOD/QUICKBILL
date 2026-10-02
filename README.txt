@@ -31,4 +31,4 @@ THINGS TO KNOW BEFORE SELLING
   - Bill-photo scanning only works inside Claude, so it is hidden in this hosted version.
 
 UPDATING
-  Replace index.html. If shops do not see the new version, change the version number (now 'quickbill-v2') in sw.js.
+  Replace index.html. If shops do not see the new version, change the version number (now 'quickbill-v3') in sw.js.
