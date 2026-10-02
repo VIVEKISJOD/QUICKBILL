@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>QuickBill – Shop Billing</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0f766e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="QuickBill">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--bg:#f6f7f9;--card:#fff;--tx:#1a1d23;--mu:#6b7280;--ac:#0f766e;--bd:#e5e7eb;--dn:#dc2626}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#111418;--card:#1b2027;--tx:#eef0f3;--mu:#9aa3af;--ac:#2dd4bf;--bd:#2c333d;--dn:#f87171}}
+:root[data-theme="dark"]{--bg:#111418;--card:#1b2027;--tx:#eef0f3;--mu:#9aa3af;--ac:#2dd4bf;--bd:#2c333d;--dn:#f87171}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0 auto;background:var(--bg);color:var(--tx);font:15px system-ui,-apple-system,Segoe UI,Roboto,sans-serif;max-width:720px;padding:10px 10px 100px}
+h1{font-size:18px;margin:0}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:10px;margin-bottom:10px}
+input,select,button{font:inherit;color:var(--tx);background:var(--in,var(--card));border:1px solid var(--bd);border-radius:10px;padding:10px;width:100%}
+input[type=checkbox]{width:auto}
+button{cursor:pointer;width:auto}
+.pri{background:var(--ac);color:#fff;border-color:var(--ac);font-weight:600}
+.row{display:flex;gap:6px;align-items:center;margin:4px 0}.row>*{flex:1}.row>.s{flex:0 0 auto}
+.mu{color:var(--mu);font-size:13px}.r{text-align:right}.b{font-weight:600}.low{color:var(--dn)}
+.hd{display:flex;justify-content:space-between;align-items:center;margin:6px 0 10px}
+nav{position:fixed;left:10px;right:10px;bottom:calc(10px + env(safe-area-inset-bottom,0px));display:flex;gap:4px;background:var(--card);border:1px solid var(--bd);border-radius:20px;padding:6px;max-width:700px;margin:auto;box-shadow:0 6px 24px #0002}
+nav button{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;border:0;border-radius:14px;background:none;padding:8px 2px;font-size:11px;font-weight:600;color:var(--mu)}
+nav button i{font-style:normal;font-size:20px;line-height:1}
+nav button.on{background:var(--ac);color:#fff}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]) nav button.on,:root:not([data-theme="light"]) .pri{color:#052e2b}}
+:root[data-theme="dark"] nav button.on,:root[data-theme="dark"] .pri{color:#052e2b}
+.ok{color:#16a34a}
+#toast{position:fixed;left:50%;transform:translateX(-50%);bottom:100px;background:#111;color:#fff;padding:10px 16px;border-radius:20px;opacity:0;transition:opacity .2s;z-index:30;pointer-events:none;max-width:90%;text-align:center}
+.tabs>section{display:none}.tabs>section.on{display:block}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}.chips button{padding:6px 10px;font-size:13px}
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.tiles button{display:flex;flex-direction:column;align-items:center;gap:6px;padding:24px 8px;font-size:16px;font-weight:700;border:0;color:#fff;border-radius:20px;width:100%;box-shadow:0 8px 18px #0002}
+.tiles i{font-style:normal;font-size:32px;line-height:1}
+.tiles [data-c=teal]{background:linear-gradient(135deg,#14b8a6,#0f766e)}.tiles [data-c=blue]{background:linear-gradient(135deg,#60a5fa,#2563eb)}
+.tiles [data-c=amber]{background:linear-gradient(135deg,#fbbf24,#d97706)}.tiles [data-c=violet]{background:linear-gradient(135deg,#a78bfa,#6d28d9)}
+.ov{position:fixed;inset:0;background:#0008;display:none;align-items:center;justify-content:center;padding:14px;z-index:9;overflow:auto}
+.ov.on{display:flex}.ov .card{max-width:380px;width:100%;max-height:92%;overflow:auto;margin:0}
+#auth{background:linear-gradient(160deg,#0f766e,#134e4a 55%,#0b1f24);align-items:center}
+#authBody{border-radius:24px;padding:28px 22px;box-shadow:0 20px 50px #0006;max-width:360px;text-align:center}
+.logo{width:68px;height:68px;border-radius:20px;margin:0 auto 12px;background:linear-gradient(135deg,#14b8a6,#0f766e);display:flex;align-items:center;justify-content:center;font-size:34px;box-shadow:0 8px 20px #0f766e66}
+.ah{font-size:24px;margin:0}.as{color:var(--mu);margin:4px 0 14px}
+.fl{display:block;text-align:left;font-size:12px;font-weight:600;color:var(--mu);margin:12px 0 4px}
+#authBody input{padding:13px;font-size:16px;border-radius:12px}
+#authBody input.pin{text-align:center;letter-spacing:6px;font-size:20px}
+.big{width:100%;padding:14px;font-size:16px;border-radius:12px;margin-top:16px}
+.who{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:14px}
+.who .u{display:flex;align-items:center;gap:8px;padding:5px 14px 5px 5px;border-radius:999px;font-weight:600}
+.who .u span{width:28px;height:28px;border-radius:50%;background:var(--bd);display:flex;align-items:center;justify-content:center}
+.who .u.on{border-color:var(--ac);box-shadow:0 0 0 2px var(--ac)}.who .u.on span{background:var(--ac);color:#fff}
+.shake{animation:sh .35s}@keyframes sh{25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+.qr{background:#fff;width:190px;margin:8px auto 2px;padding:6px;border-radius:8px}.qr svg{display:block;width:100%;height:auto}
+pre{font:12px ui-monospace,monospace;white-space:pre-wrap;margin:0}
+label.t{display:flex;gap:8px;align-items:center;padding:7px 0;border-bottom:1px solid var(--bd)}
+.card{border-radius:16px;padding:12px;box-shadow:0 1px 2px #0000000a,0 6px 16px #00000008}
+button{transition:transform .08s,opacity .15s}button:active{transform:scale(.97)}
+.pri{background:linear-gradient(135deg,#14b8a6,var(--ac))}
+.chips button{border-radius:999px}
+#tot{color:var(--ac);font-size:24px!important}
+h1{font-weight:800;letter-spacing:-.3px}
+input:focus,select:focus{outline:2px solid var(--ac);outline-offset:-1px}
+#hs,#hb{font-size:26px!important}
+/* liquid glass */
+body.liquid{--bg:#e4eef3;--card:rgba(255,255,255,.55);--in:rgba(255,255,255,.45);--bd:rgba(255,255,255,.7)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]) body.liquid{--bg:#0a1016;--card:rgba(28,34,44,.55);--in:rgba(255,255,255,.08);--bd:rgba(255,255,255,.14)}}
+:root[data-theme="dark"] body.liquid{--bg:#0a1016;--card:rgba(28,34,44,.55);--in:rgba(255,255,255,.08);--bd:rgba(255,255,255,.14)}
+body.liquid::before{content:"";position:fixed;inset:0;z-index:-1;background:radial-gradient(circle at 12% 8%,#2dd4bf99,transparent 45%),radial-gradient(circle at 88% 22%,#818cf899,transparent 45%),radial-gradient(circle at 45% 95%,#f472b680,transparent 50%)}
+body.liquid .card,body.liquid nav{-webkit-backdrop-filter:blur(22px) saturate(170%);backdrop-filter:blur(22px) saturate(170%);box-shadow:0 10px 32px #0000001f,inset 0 1px 0 #ffffffaa}
+body.liquid input,body.liquid select,body.liquid .chips button{-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+body.liquid .ov{-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+body.liquid #authBody{--card:rgba(255,255,255,.86)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]) body.liquid #authBody{--card:rgba(24,30,38,.82)}}
+:root[data-theme="dark"] body.liquid #authBody{--card:rgba(24,30,38,.82)}
+body.liquid nav button.on{background:linear-gradient(135deg,#14b8a6,var(--ac));box-shadow:0 4px 12px #0f766e55}
+body.liquid .tiles button{box-shadow:0 10px 24px #0003,inset 0 1px 0 #ffffff66}
+.dots{display:flex;gap:14px;justify-content:center;margin:6px 0 20px}.dots i{width:14px;height:14px;border-radius:50%;border:2px solid var(--ac);transition:background .1s}.dots i.f{background:var(--ac)}
+.kp{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.kp button{padding:14px 0;font-size:22px;font-weight:600;border-radius:16px;width:100%}.kp .x{visibility:hidden}
+@media print{body>*:not(#ov){display:none!important}#ov{position:static;background:none;display:block}#ov .card{border:0}.noprint{display:none}}
+</style></head><body>
+<div class="ov on" id="auth"><div class="card" id="authBody"></div></div>
+<div id="app" style="display:none">
+<div class="hd"><h1>🧾 <span id="shop"></span></h1><div><button id="gear" title="Settings" style="display:none">⚙️</button> <span class="mu" id="who"></span> <button id="out">Logout</button></div></div>
+<div class="tabs">
+<section id="t-home"><div class="card"><div class="b" id="hi"></div><div class="row" id="hstats"><div>Today's sales<div class="b" id="hs" style="font-size:22px"></div></div><div>Bills<div class="b" id="hb" style="font-size:22px"></div></div></div></div><div class="tiles" id="tiles"></div></section>
+<section id="t-bill">
+ <div class="card"><input id="q" placeholder="Search item or scan barcode, press Enter" autocomplete="off"><div class="chips" id="res"></div></div>
+ <div class="card"><div id="cart"></div>
+  <div id="discbox"><label class="t"><input type="checkbox" id="dchk"> Apply discount</label>
+  <div class="row" id="dval" style="display:none"><span class="s mu">Discount ₹</span><input id="disc" type="number" min="0" value="0"></div></div>
+  <div class="row" id="gstrow"><span class="mu">GST included</span><span class="r mu" id="gst">₹0</span></div>
+  <div class="row"><span class="b">Total</span><span class="r b" id="tot" style="font-size:20px">₹0</span></div></div>
+ <div class="card">
+  <div class="row"><input id="cp" placeholder="Customer phone" inputmode="tel" list="cpl"><input id="cn" placeholder="Customer name" list="cnl"></div><datalist id="cpl"></datalist><datalist id="cnl"></datalist>
+  <div class="mu" id="chint" style="min-height:0"></div>
+  <div class="row" id="sl"><span class="s mu">Send bill via</span><select id="sendvia"></select></div>
+  <div class="row"><select id="mode"></select><button class="pri" id="save">Save bill</button></div>
+  <div id="qrbox" style="display:none;text-align:center"></div></div>
+</section>
+<section id="t-items"><div class="card"><div class="b">Add / edit item</div>
+  <div class="row"><input id="in" placeholder="Name"><input id="ic" placeholder="Barcode (optional)"></div>
+  <div class="row"><input id="ip" type="number" step="any" placeholder="Price ₹ per unit"><input id="ig" type="number" placeholder="GST %" value="5"><input id="is" type="number" step="any" placeholder="Stock"></div>
+  <div class="row"><select id="iu"><option value="pcs">Sold by piece</option><option value="kg">Sold by weight (kg)</option><option value="l">Sold by volume (litre)</option></select></div>
+  <button class="pri" id="addi" style="width:100%">Save item</button></div>
+ <div class="card"><div class="b">Bulk import (fast)</div>
+  <div class="mu">One item per line: name, price, GST %, stock, barcode, unit (pcs / kg / l). Paste straight from Excel / Google Sheets, or load a CSV file.</div>
+  <textarea id="bulk" rows="6" placeholder="Parle-G Biscuit,10,18,100,8901719101" style="width:100%;margin-top:6px;border:1px solid var(--bd);border-radius:10px;padding:9px;background:var(--in,var(--card));color:var(--tx);font:13px ui-monospace,monospace"></textarea>
+  <div class="row"><button id="bex">Show example</button><button id="bcur">Load current items</button><button id="bfile">Load CSV file</button></div>
+  <input id="ifile" type="file" accept=".csv,.txt,text/csv" hidden>
+  <div class="row" id="scanrow" style="display:none"><button id="bscan" class="pri">📷 Scan bill photo</button><input id="mg" type="number" step="any" placeholder="Add margin % (optional)"></div>
+  <input id="sfile" type="file" accept="image/*" hidden>
+  <label class="t"><input type="checkbox" id="addst"> Add quantities to existing stock (for purchase bills)</label>
+  <div class="mu" id="scanst"></div>
+  <button class="pri" id="bgo" style="width:100%">Import items</button></div>
+ <div class="card"><div class="b">Change prices (market rate)</div><div class="mu">Add or subtract a fixed ₹ amount per unit (per kg, litre or piece), e.g. +10 on all dal. Leave the name blank for all items.</div>
+  <div class="row"><input id="pf" placeholder="Items containing, e.g. dal"><select id="pu"><option value="">All items</option><option value="kg">Kg items only</option><option value="l">Litre items only</option><option value="pcs">Piece items only</option></select></div>
+  <div class="row"><input id="pp" type="number" step="any" placeholder="₹ change per unit, e.g. 10 or -5"></div>
+  <div class="row"><button id="pgo" class="pri">Apply</button><button id="pun">Undo last change</button></div></div>
+ <div class="card"><input id="isq" placeholder="Search inventory…"></div><div class="card" id="items"></div></section>
+<section id="t-cust"><div class="card" id="custs"></div></section>
+<section id="t-rep"><div class="card" id="rep"></div></section>
+<section id="t-set">
+ <div class="card"><div class="b">Shop</div>
+  <div class="row"><input id="sn" placeholder="Shop name"></div>
+  <div class="row"><input id="su" placeholder="UPI ID (e.g. shop@upi)"><button id="ssn" class="s">Save</button></div>
+  <div class="row"><button id="cpw">Change security password</button></div></div>
+ <div class="card"><div class="b">Appearance</div><label class="t"><input type="checkbox" id="liq"> Liquid glass look</label></div>
+ <div class="card"><div class="b">Features</div><div id="feat"></div></div>
+ <div class="card"><div class="b">Accounts</div><div id="users"></div>
+  <div class="row"><input id="un" placeholder="Name"><input id="up" placeholder="4-digit PIN" inputmode="numeric" type="password" maxlength="4"></div>
+  <div class="row"><select id="ur"><option value="cashier">Cashier</option><option value="owner">Owner</option></select><button id="addu" class="pri">Add account</button></div></div>
+ <div class="card"><div class="row"><button id="exp">Export backup</button><button id="imp">Restore backup</button></div><input id="file" type="file" accept=".json" hidden></div>
+</section></div>
+<nav id="nav"></nav></div>
+<div class="ov" id="ov"><div class="card"><pre id="inv"></pre><div id="invqr"></div>
+ <div class="row noprint"><button id="sm" class="pri">SMS</button><button id="wa" class="pri">WhatsApp</button><button id="pr">Print</button><button id="cl">Close</button></div></div></div>
+<div class="ov" id="dlg"><div class="card"><div id="dm" class="b"></div><input id="di" type="number" style="display:none;margin-top:8px"><div class="row"><button id="dno">Cancel</button><button id="dok" class="pri">OK</button></div></div></div>
+<div id="toast"></div>
+<script>
+const $=id=>document.getElementById(id),K='quickbill_v1';
+const FEATS={discount:'Discount option at billing',gst:'GST on bills & items',upi:'UPI QR payments',udhaar:'Udhaar (credit) & balances',stock:'Stock tracking',sms:'Send bill by SMS',whatsapp:'Send bill on WhatsApp',lock:'PIN lock (ask for PIN when opening the app)'};
+const def=()=>({shop:'QuickBill',upi:'',users:[],f:{discount:true,gst:true,upi:true,udhaar:true,stock:true,sms:true,whatsapp:true,liquid:true,lock:true},items:[{id:1,name:'Sample item',price:100,gst:5,stock:50,code:'1001'}],bills:[],pay:[],n:1});
+let db=def();
+try{const s=JSON.parse(localStorage.getItem(K)||'null');if(s){db=Object.assign(def(),s);db.f=Object.assign(def().f,s.f)}}catch(e){}
+const save=()=>{try{localStorage.setItem(K,JSON.stringify(db))}catch(e){}};
+const h=s=>{let x=5381;for(const c of String(s))x=((x<<5)+x+c.charCodeAt(0))|0;return String(x)};
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const R=n=>'₹'+(Math.round(n*100)/100).toFixed(2).replace(/\.00$/,'');
+const sameDay=d=>new Date(d).toDateString()===new Date().toDateString();
+let me=null,cart=[],last=null,tab='bill';
+document.body.classList.toggle('liquid',!!db.f.liquid);
+function toast(m){const t=$('toast');t.textContent=m;t.style.opacity=1;clearTimeout(toast.t);toast.t=setTimeout(()=>t.style.opacity=0,2800)}
+function ask(msg,cb,val,type){$('dm').textContent=msg;const i=$('di');i.style.display=val===undefined?'none':'';if(val!==undefined){i.value=val;i.type=type||'number';i.step='any'}$('dlg').classList.add('on');
+ $('dno').onclick=()=>$('dlg').classList.remove('on');$('dok').onclick=()=>{const v=i.value;$('dlg').classList.remove('on');cb(v)}}
+window.alert=toast;
+/* ---------- entry / accounts ---------- */
+function boot(){if(db.users.length&&!db.f.lock)return enter(db.users.find(u=>u.role==='owner')||db.users[0]);$('auth').classList.add('on');$('app').style.display='none';
+ const A=$('authBody');
+ if(!db.users.length){A.innerHTML=`<div class="logo">🧾</div><h1 class="ah">QuickBill</h1><p class="as">Set up your shop in under a minute</p>
+ <label class="fl">Shop name</label><input id="a1" placeholder="e.g. Sharma General Store">
+ <label class="fl">Your name</label><input id="a2" placeholder="Owner name">
+ <label class="fl">Create 4-digit PIN</label><input id="a3" class="pin" placeholder="••••" inputmode="numeric" type="password" maxlength="4">
+ <label class="fl">Security password <span style="font-weight:400">(needed to change UPI ID)</span></label><input id="a5" type="password" placeholder="Min 4 characters">
+ <label class="fl">UPI ID <span style="font-weight:400">(optional, for QR payments)</span></label><input id="a4" placeholder="shop@upi">
+ <button class="pri big" id="ab">Create account &amp; start</button>`;
+  $('ab').onclick=()=>{const n=$('a2').value.trim(),p=$('a3').value;if(!n||!/^\d{4}$/.test(p))return toast('Enter your name and a 4-digit PIN');if($('a5').value.length<4)return toast('Security password needs 4+ characters');
+   db.shop=$('a1').value.trim()||'QuickBill';db.upi=$('a4').value.trim();db.secpw=h($('a5').value);db.users.push({name:n,pin:h(p),role:'owner'});save();enter(db.users[0])}}
+ else{pv='';
+  A.innerHTML=`<div class="logo">🧾</div><h1 class="ah">${esc(db.shop)}</h1><p class="as">Enter your 4-digit PIN</p><div class="dots" id="dots"></div><div class="kp" id="kp"></div>`;
+  ['1','2','3','4','5','6','7','8','9','','0','⌫'].forEach(k=>{const b=document.createElement('button');b.textContent=k;if(!k)b.className='x';else b.onclick=()=>press(k);$('kp').append(b)});
+  drawDots()}}
+let pv='';
+function drawDots(){const n=Math.max(4,pv.length);$('dots').innerHTML=Array.from({length:n},(_,i)=>'<i class="'+(i<pv.length?'f':'')+'"></i>').join('')}
+function press(k){if(k==='⌫')pv=pv.slice(0,-1);else if(pv.length<8)pv+=k;drawDots();if(k!=='⌫')checkPin()}
+function checkPin(){const hh=h(pv),u=db.users.filter(x=>x.pin===hh).sort((a,b)=>(b.role==='owner')-(a.role==='owner'))[0];
+ if(u){pv='';return enter(u)}
+ if(pv.length>=4){pv='';drawDots();toast('Wrong PIN');const A=$('authBody');A.classList.remove('shake');void A.offsetWidth;A.classList.add('shake')}}
+document.addEventListener('keydown',e=>{if(!$('auth').classList.contains('on')||!$('dots'))return;if(/^\d$/.test(e.key))press(e.key);else if(e.key==='Backspace')press('⌫')});
+function enter(u){me=u;try{sessionStorage.setItem('qb_me',u.name)}catch(e){}$('auth').classList.remove('on');$('app').style.display='block';tab='home';applyF();draw()}
+$('out').onclick=()=>{me=null;try{sessionStorage.removeItem('qb_me')}catch(e){}cart=[];boot()};
+const owner=()=>me&&me.role==='owner';
+/* ---------- features / nav ---------- */
+function applyF(){const f=db.f;document.body.classList.toggle('liquid',!!f.liquid);$('out').style.display=f.lock?'':'none';
+ $('discbox').style.display=f.discount?'':'none';if(!f.discount){$('dchk').checked=false}
+ $('gstrow').style.display=f.gst?'':'none';
+ const modes=['Cash'].concat(f.upi?['UPI']:[],['Card'],f.udhaar?['Udhaar']:[]),cur=$('mode').value;
+ $('mode').innerHTML=modes.map(m=>`<option>${m}</option>`).join('');if(modes.includes(cur))$('mode').value=cur;
+ $('ig').style.display=f.gst?'':'none';$('is').style.display=f.stock?'':'none';
+ const tabs=[['home','Home',1,'🏠'],['bill','Bill',1,'🧾'],['items','Items',owner(),'📦'],['cust','Udhaar',f.udhaar,'📒'],['rep','Reports',owner(),'📊']].filter(t=>t[2]);
+ if(!(tab==='set'&&owner())&&!tabs.some(t=>t[0]===tab))tab='home';
+ $('gear').style.display=owner()?'':'none';const sv=[];if(f.sms)sv.push('SMS');if(f.whatsapp)sv.push('WhatsApp');const cs=$('sendvia').value;
+ $('sendvia').innerHTML=['Do not send'].concat(sv).map(m=>'<option>'+m+'</option>').join('');$('sendvia').value=(sv.includes(cs)||cs==='Do not send')?cs:(sv[0]||'Do not send');$('sl').style.display=sv.length?'':'none';
+ $('nav').innerHTML='';tabs.forEach(t=>{const b=document.createElement('button');b.innerHTML='<i>'+t[3]+'</i>'+t[1];b.className=t[0]===tab?'on':'';b.onclick=()=>{tab=t[0];applyF();draw()};$('nav').append(b)});
+ document.querySelectorAll('.tabs>section').forEach(s=>s.classList.toggle('on',s.id==='t-'+tab))}
+/* ---------- billing ---------- */
+function totals(){const sub=cart.reduce((s,l)=>s+l.price*l.qty,0),d=db.f.discount&&$('dchk').checked?Math.min(+$('disc').value||0,sub):0,k=sub?(sub-d)/sub:0;
+ const gst=db.f.gst?cart.reduce((s,l)=>{const t=l.price*l.qty*k;return s+t-t/(1+l.gst/100)},0):0;return{sub,d,tot:sub-d,gst}}
+function upiUrl(amt,note){return 'upi://pay?pa='+encodeURIComponent(db.upi)+'&pn='+encodeURIComponent(db.shop)+'&am='+amt.toFixed(2)+'&cu=INR&tn='+encodeURIComponent(note)}
+function qrHtml(url){try{const q=qrcode(0,'M');q.addData(url);q.make();return '<div class="qr">'+q.createSvgTag({cellSize:4,margin:0,scalable:true})+'</div>'}catch(e){return '<div class="mu">QR could not load (check internet once)</div>'}}
+function drawQR(){const bx=$('qrbox'),t=totals();
+ if(!(db.f.upi&&$('mode').value==='UPI')){bx.style.display='none';return}
+ bx.style.display='block';
+ if(!db.upi)bx.innerHTML='<div class="low">Add your UPI ID in Settings to show the QR.</div>';
+ else if(t.tot<=0)bx.innerHTML='<div class="mu">Add items to generate the payment QR.</div>';
+ else bx.innerHTML=qrHtml(upiUrl(t.tot,'Bill '+db.n))+`<div class="b">Scan to pay ${R(t.tot)}</div><div class="mu">${esc(db.upi)}</div>`}
+const U=u=>u==='kg'?'kg':u==='l'?'L':'';
+function add(it){const w=it.unit&&it.unit!=='pcs';
+ const put=q=>{const l=cart.find(c=>c.id===it.id);if(l)l.qty=Math.round((l.qty+q)*1000)/1000;else cart.push({id:it.id,name:it.name,price:it.price,gst:it.gst,unit:it.unit||'pcs',qty:q});$('q').value='';drawBill()};
+ if(w)ask('Quantity of '+it.name+' ('+U(it.unit)+')',v=>{const q=parseFloat(v);if(q>0)put(q);else toast('Enter a quantity')},'1');else put(1)}
+function drawBill(){const q=$('q').value.trim().toLowerCase();$('res').innerHTML='';
+ (q?db.items.filter(i=>i.name.toLowerCase().includes(q)||i.code===q):db.items).slice(0,12).forEach(i=>{const b=document.createElement('button');b.textContent=i.name+' · '+R(i.price);b.onclick=()=>add(i);$('res').append(b)});
+ $('cart').innerHTML=cart.length?'':'<div class="mu">Cart is empty. Tap an item above.</div>';
+ cart.forEach((l,i)=>{const d=document.createElement('div');d.className='row';
+  const wt=l.unit&&l.unit!=='pcs';
+  d.innerHTML=`<div>${esc(l.name)}<div class="mu">${R(l.price)}${wt?'/'+U(l.unit):''}${db.f.gst?' · GST '+l.gst+'%':''}</div></div>`+(wt?`<div class="s row"><input class="wq" type="number" step="any" min="0" value="${l.qty}" style="width:76px"><span class="mu">${U(l.unit)}</span><button data-a="x">✕</button></div>`:`<div class="s row"><button data-a="-">−</button><b>${l.qty}</b><button data-a="+">+</button></div>`)+`<div class="s b r" style="min-width:64px">${R(l.price*l.qty)}</div>`;
+  const wq=d.querySelector('.wq');if(wq)wq.onchange=()=>{const q=parseFloat(wq.value);if(q>0)l.qty=q;else cart.splice(i,1);drawBill()};
+  d.querySelectorAll('button').forEach(b=>b.onclick=()=>{if(b.dataset.a==='x')cart.splice(i,1);else{l.qty+=b.dataset.a==='+'?1:-1;if(l.qty<1)cart.splice(i,1)}drawBill()});$('cart').append(d)});
+ $('dval').style.display=$('dchk').checked?'':'none';
+ const t=totals();$('gst').textContent=R(t.gst);$('tot').textContent=R(t.tot);drawQR()}
+let autoN=false,autoP=false;
+const dg=x=>(x||'').replace(/\D/g,'').slice(-10);
+const pend=c=>db.bills.filter(b=>b.mode==='Udhaar'&&b.cust===c).reduce((s,b)=>s+b.total,0)-db.pay.filter(p=>p.cust===c).reduce((s,p)=>s+p.amt,0);
+function known(){const m={};db.bills.forEach(b=>{if(b.cust&&dg(b.phone).length===10)m[dg(b.phone)]=b.cust});return m}
+function drawKnown(){const m=known(),nm={};Object.keys(m).forEach(p=>nm[m[p]]=p);
+ $('cnl').innerHTML=Object.keys(nm).map(n=>'<option value="'+esc(n)+'">'+nm[n]+'</option>').join('');
+ $('cpl').innerHTML=Object.keys(m).map(p=>'<option value="'+p+'">'+esc(m[p])+'</option>').join('')}
+function hint(){const n=$('cn').value.trim(),p=dg($('cp').value),ht=$('chint');
+ if(n&&db.bills.some(b=>b.cust===n)){const bal=pend(n);ht.innerHTML='Existing customer'+(bal>0.005?' · <span class="low b">'+R(bal)+' pending</span>':'')}
+ else ht.textContent=(p.length===10||n)?'New customer':''}
+$('cp').oninput=()=>{autoP=false;const p=dg($('cp').value),m=known();
+ if(p.length===10&&m[p]&&(!$('cn').value||autoN)){$('cn').value=m[p];autoN=true}
+ else if(autoN){$('cn').value='';autoN=false}
+ hint()};
+$('cn').oninput=()=>{autoN=false;const n=$('cn').value.trim().toLowerCase(),m=known(),hit=Object.keys(m).filter(p=>m[p].toLowerCase()===n);
+ if(n&&hit.length===1&&(!$('cp').value||autoP)){$('cp').value=hit[0];autoP=true}
+ else if(autoP){$('cp').value='';autoP=false}
+ hint()};
+$('q').oninput=drawBill;$('disc').oninput=drawBill;$('dchk').onchange=drawBill;$('mode').onchange=drawBill;
+$('q').onkeydown=e=>{if(e.key!=='Enter')return;const v=$('q').value.trim().toLowerCase(),m=db.items.filter(i=>i.code===v||i.name.toLowerCase().includes(v));if(m.length===1)add(m[0])};
+$('save').onclick=(ev,force)=>{if(!cart.length)return alert('Add items first');
+ const m=$('mode').value,cn=$('cn').value.trim();if(m==='Udhaar'&&!cn)return alert('Enter customer name for Udhaar');
+ if(db.f.stock&&!force){const sh=cart.find(l=>{const it=db.items.find(i=>i.id===l.id);return it&&it.stock<l.qty});if(sh)return ask(sh.name+' has low stock. Save bill anyway?',()=>$('save').onclick(null,true))}
+ const t=totals(),bill={no:db.n++,date:Date.now(),cust:cn,phone:$('cp').value.trim(),lines:cart.map(l=>({...l})),disc:t.d,gst:t.gst,total:t.tot,mode:m,by:me.name};
+ if(db.f.stock)cart.forEach(l=>{const it=db.items.find(i=>i.id===l.id);if(it)it.stock=Math.round((it.stock-l.qty)*1000)/1000});
+ db.bills.push(bill);save();cart=[];$('disc').value=0;$('dchk').checked=false;$('cn').value='';$('cp').value='';autoN=autoP=false;drawKnown();$('chint').textContent='';show(bill);{const via=$('sendvia').value;if(bill.phone){if(via==='SMS')smsSend(bill);else if(via==='WhatsApp')waSend(bill)}}drawBill()};
+function invText(b){const ln='-'.repeat(34);let s=db.shop+'\n'+new Date(b.date).toLocaleString()+'\nBill #'+b.no+(b.cust?'\nCustomer: '+b.cust:'')+'\n'+ln+'\n';
+ b.lines.forEach(l=>s+=l.name+'\n  '+l.qty+(l.unit&&l.unit!=='pcs'?' '+U(l.unit):'')+' x '+l.price+' = '+R(l.qty*l.price)+'\n');
+ return s+ln+'\n'+(b.disc?'Discount: -'+R(b.disc)+'\n':'')+(db.f.gst?'GST included: '+R(b.gst)+'\n':'')+'TOTAL: '+R(b.total)+'\nPaid by: '+b.mode+(b.mode==='Udhaar'?' (pending)':'')+'\n'+ln+'\nThank you! Visit again.'}
+function show(b){last=b;$('inv').textContent=invText(b);
+ $('invqr').innerHTML=b.mode==='UPI'&&db.upi?qrHtml(upiUrl(b.total,'Bill '+b.no))+'<div class="b" style="text-align:center">Scan to pay '+R(b.total)+'</div>':'';
+ $('sm').style.display=db.f.sms?'':'none';$('wa').style.display=db.f.whatsapp?'':'none';$('ov').classList.add('on')}
+$('cl').onclick=()=>$('ov').classList.remove('on');$('pr').onclick=()=>window.print();
+const RS=n=>'Rs.'+(Math.round(n*100)/100);
+function smsText(b){return db.shop+'\nBill #'+b.no+' '+new Date(b.date).toLocaleDateString()+'\n'+b.lines.map(l=>l.name+' x'+l.qty+(l.unit&&l.unit!=='pcs'?U(l.unit):'')).join(', ')+'\nTotal: '+RS(b.total)+(b.disc?' (disc '+RS(b.disc)+')':'')+'\nPaid: '+b.mode+(b.mode==='Udhaar'?' (pending)':'')+'\nThank you!'}
+function smsSend(b){let p=(b.phone||'').replace(/\D/g,'').replace(/^0+/,'');p=p.length===10?'+91'+p:(p?'+'+p:'');
+ window.open('sms:'+p+(/iPhone|iPad|iPod/.test(navigator.userAgent)?'&':'?')+'body='+encodeURIComponent(smsText(b)),'_blank')}
+$('sm').onclick=()=>smsSend(last);
+function waSend(b){let p=(b.phone||'').replace(/\D/g,'').replace(/^0+/,'');if(p.length===10)p='91'+p;window.open('https://wa.me/'+p+'?text='+encodeURIComponent(invText(b)),'_blank')}
+$('wa').onclick=()=>waSend(last);
+$('gear').onclick=()=>{tab='set';applyF();draw()};
+/* ---------- items / udhaar / reports ---------- */
+function drawItems(){const q=$('isq').value.trim().toLowerCase(),L=db.items.filter(i=>!q||i.name.toLowerCase().includes(q)||(i.code||'').includes(q));
+ $('items').innerHTML='<div class="b">Inventory ('+db.items.length+')</div>'+(L.length>100?'<div class="mu">Showing first 100 of '+L.length+' - search to narrow</div>':'');
+ L.slice(0,100).forEach(i=>{const d=document.createElement('div');d.className='row';
+  d.innerHTML=`<div>${esc(i.name)}<div class="mu">${R(i.price)}${i.unit&&i.unit!=='pcs'?'/'+U(i.unit):''}${db.f.gst?' · GST '+i.gst+'%':''}${i.code?' · #'+esc(i.code):''}</div></div>${db.f.stock?`<div class="s ${i.stock<=5?'low b':''}">Stock ${i.stock}${i.unit&&i.unit!=='pcs'?' '+U(i.unit):''}</div>`:''}<button class="s">Edit</button><button class="s">✕</button>`;
+  const [e,x]=d.querySelectorAll('button');
+  e.onclick=()=>{$('in').value=i.name;$('ic').value=i.code||'';$('ip').value=i.price;$('ig').value=i.gst;$('is').value=i.stock;$('iu').value=i.unit||'pcs';$('addi').dataset.id=i.id;scrollTo(0,0)};
+  x.onclick=()=>ask('Delete '+i.name+'?',()=>{db.items=db.items.filter(z=>z!==i);save();drawItems()});$('items').append(d)})}
+function csvRows(t){const rows=[],d=t.includes('\t')?'\t':',';let r=[],c='',q=false;
+ for(let i=0;i<t.length;i++){const ch=t[i];
+  if(q){if(ch==='"'){if(t[i+1]==='"'){c+='"';i++}else q=false}else c+=ch}
+  else if(ch==='"')q=true;else if(ch===d){r.push(c);c=''}
+  else if(ch==='\n'||ch==='\r'){if(ch==='\r'&&t[i+1]==='\n')i++;r.push(c);c='';if(r.some(x=>x.trim()))rows.push(r);r=[]}else c+=ch}
+ r.push(c);if(r.some(x=>x.trim()))rows.push(r);return rows.map(r=>r.map(x=>x.trim()))}
+const num=v=>parseFloat(String(v||'').replace(/[₹,]/g,''));
+function importItems(){let rows=csvRows($('bulk').value.replace(/^\uFEFF/,''));if(!rows.length)return toast('Paste or load some items first');
+ if(isNaN(num(rows[0][1])))rows=rows.slice(1);
+ let add=0,upd=0,bad=0;
+ rows.forEach((r,i)=>{const name=r[0],price=num(r[1]);if(!name||!(price>=0)){bad++;return}
+  const gst=num(r[2])||0,stock=num(r[3])||0,code=r[4]||'',unit=/^k/i.test(r[5]||'')?'kg':/^(l|ltr|lit)/i.test(r[5]||'')?'l':'pcs';
+  const ex=db.items.find(x=>code?x.code===code:x.name.toLowerCase()===name.toLowerCase());
+  if(ex){ex.price=price;if(r[2])ex.gst=gst;if(r[3])ex.stock=$('addst').checked?Math.round((ex.stock+stock)*1000)/1000:stock;if(code)ex.code=code;if(r[5])ex.unit=unit;upd++}
+  else{db.items.push({id:Date.now()+i,name,price,gst,stock,code,unit});add++}});
+ save();$('bulk').value='';$('addst').checked=false;$('scanst').textContent='';drawItems();drawBill();toast(add+' added, '+upd+' updated'+(bad?', '+bad+' skipped (need name and price)':''))}
+$('bgo').onclick=importItems;$('isq').oninput=drawItems;
+$('bex').onclick=()=>{$('bulk').value='name,price,gst,stock,barcode,unit\nParle-G Biscuit,10,18,100,8901719101,pcs\nRice (price per kg),60,0,200,,kg'};
+$('bcur').onclick=()=>{$('bulk').value='name,price,gst,stock,barcode,unit\n'+db.items.map(i=>[i.name,i.price,i.gst,i.stock,i.code||'',i.unit||'pcs'].map(v=>/[",\n]/.test(v)?'"'+String(v).replace(/"/g,'""')+'"':v).join(',')).join('\n')};
+$('bfile').onclick=()=>$('ifile').click();
+$('ifile').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{$('bulk').value=r.result;toast('File loaded - tap Import items')};r.readAsText(f);e.target.value=''};
+const BILLP='This is a photo of a purchase bill, supplier invoice or handwritten stock list from an Indian shop. Extract every product line. Reply with ONLY a JSON array of objects {"name","price","gst","stock","unit"}: name = product name as written; price = rate per unit (per kg, per piece or per litre) as printed on the bill; gst = GST percent if shown, else 0; stock = quantity bought as a number; unit = "kg", "l" or "pcs". Skip totals, taxes, discounts, headers and addresses. Example: [{"name":"Toor Dal","price":140,"gst":0,"stock":25,"unit":"kg"}]';
+let SM=null;
+(async()=>{try{if(window.claude){SM=await claude.use('sample');if(SM){const l=await SM.limits();if(l&&l.images)$('scanrow').style.display=''}}}catch(e){}})();
+$('bscan').onclick=()=>$('sfile').click();
+$('sfile').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f||!SM)return;const st=$('scanst');st.textContent='Reading bill... this can take up to a minute';
+ try{const rows=await SM.json(BILLP,{images:[f]});
+  if(!Array.isArray(rows)||!rows.length){st.textContent='No items found. Try a clearer, straight photo.';return}
+  const m=parseFloat($('mg').value)||0,q=v=>/[",\n]/.test(v)?'"'+String(v).replace(/"/g,'""')+'"':v;
+  $('bulk').value='name,price,gst,stock,barcode,unit\n'+rows.map(r=>[q(String(r.name||'').trim()),Math.round((+r.price||0)*(1+m/100)*100)/100,+r.gst||0,+r.stock||0,'',/^k/i.test(r.unit)?'kg':/^l/i.test(r.unit)?'l':'pcs'].join(',')).join('\n');
+  $('addst').checked=true;st.textContent=rows.length+' items read. Check the list, fix anything wrong, then tap Import items.'}
+ catch(err){st.textContent=err&&err.code==='not_granted'?'Permission was declined.':err&&err.code==='rate_limited'?'Too many tries, wait a minute.':'Could not read the bill ('+((err&&err.code)||'error')+'). Try a clearer photo.'}};
+$('pgo').onclick=()=>{const f=$('pf').value.trim().toLowerCase(),u=$('pu').value,p=parseFloat($('pp').value);if(!p)return toast('Enter the ₹ change, e.g. 10 or -5');
+ const L=db.items.filter(i=>(!f||i.name.toLowerCase().includes(f))&&(!u||(i.unit||'pcs')===u));if(!L.length)return toast('No items match');
+ ask((p>0?'Increase ':'Decrease ')+L.length+' item(s)'+(f?' matching "'+f+'"':'')+' by ₹'+Math.abs(p)+(u==='kg'?' per kg':u==='l'?' per litre':u==='pcs'?' each':' per unit')+'?',()=>{
+  db.lastPrices=L.map(i=>({id:i.id,old:i.price}));L.forEach(i=>i.price=Math.max(0,Math.round((i.price+p)*100)/100));save();drawItems();drawBill();toast(L.length+' prices updated')})};
+$('pun').onclick=()=>{const u=db.lastPrices;if(!u||!u.length)return toast('Nothing to undo');u.forEach(x=>{const i=db.items.find(z=>z.id===x.id);if(i)i.price=x.old});db.lastPrices=[];save();drawItems();drawBill();toast('Last price change undone')};
+$('addi').onclick=()=>{const n=$('in').value.trim(),p=+$('ip').value;if(!n||$('ip').value===''||p<0)return alert('Enter name and price');
+ const o={name:n,code:$('ic').value.trim(),price:p,gst:+$('ig').value||0,stock:+$('is').value||0,unit:$('iu').value},id=+$('addi').dataset.id;
+ if(id){Object.assign(db.items.find(i=>i.id===id),o);delete $('addi').dataset.id}else db.items.push({id:Date.now(),...o});
+ ['in','ic','ip','is'].forEach(k=>$(k).value='');$('iu').value='pcs';save();drawItems();drawBill()};
+function drawCust(){const m={};
+ db.bills.filter(b=>b.mode==='Udhaar').forEach(b=>{const c=m[b.cust]=m[b.cust]||{tot:0,paid:0};c.tot+=b.total});
+ db.pay.forEach(p=>{if(m[p.cust])m[p.cust].paid+=p.amt});
+ const pe=c=>m[c].tot-m[c].paid>0.005,k=Object.keys(m).sort((a,b)=>pe(b)-pe(a));
+ $('custs').innerHTML='<div class="b">Udhaar</div>'+(k.length?'':'<div class="mu">No udhaar yet.</div>');
+ k.forEach(c=>{const o=m[c],bal=Math.round((o.tot-o.paid)*100)/100,d=document.createElement('div');d.className='row';
+  d.innerHTML=`<div>${esc(c)}<div class="mu">Total ${R(o.tot)} · Received ${R(o.paid)}</div></div>`+(pe(c)?`<div class="s b low">${R(bal)} pending</div><button class="s pri">Received</button>`:'<div class="s b ok">✓ Received</div>');
+  if(pe(c))d.querySelector('button').onclick=()=>ask('Amount received from '+c+' (₹)',v=>{const a=parseFloat(v);if(!(a>0))return toast('Enter a valid amount');db.pay.push({cust:c,amt:Math.min(a,o.tot-o.paid),date:Date.now()});save();drawCust();toast('Payment recorded')},bal);
+  $('custs').append(d)})}
+function drawRep(){const t=db.bills.filter(b=>sameDay(b.date)),by={},top={};t.forEach(b=>{by[b.mode]=(by[b.mode]||0)+b.total;b.lines.forEach(l=>top[l.name]=(top[l.name]||0)+l.qty)});
+ const sum=t.reduce((s,b)=>s+b.total,0),low=db.f.stock?db.items.filter(i=>i.stock<=5):[];
+ $('rep').innerHTML=`<div class="b">Today</div><div class="row"><div>Sales<div class="b" style="font-size:22px">${R(sum)}</div></div><div>Bills<div class="b" style="font-size:22px">${t.length}</div></div></div>
+ <div class="mu">By payment mode</div>${Object.keys(by).map(k=>`<div class="row"><span>${k}</span><span class="r">${R(by[k])}</span></div>`).join('')||'<div class="mu">No sales yet</div>'}
+ <div class="mu" style="margin-top:8px">Top items</div>${Object.entries(top).sort((a,b)=>b[1]-a[1]).slice(0,5).map(([n,q])=>`<div class="row"><span>${esc(n)}</span><span class="r">${q} sold</span></div>`).join('')||'<div class="mu">–</div>'}
+ ${db.f.stock?`<div class="mu" style="margin-top:8px">Low stock (≤5)</div>${low.map(i=>`<div class="row low"><span>${esc(i.name)}</span><span class="r">${i.stock} left</span></div>`).join('')||'<div class="mu">All good</div>'}`:''}`}
+/* ---------- settings ---------- */
+$('liq').onchange=e=>{db.f.liquid=e.target.checked;save();applyF()};
+function drawSet(){$('liq').checked=!!db.f.liquid;$('sn').value=db.shop;$('su').value=db.upi;
+ $('feat').innerHTML='';Object.keys(FEATS).forEach(k=>{const l=document.createElement('label');l.className='t';l.innerHTML=`<input type="checkbox" ${db.f[k]?'checked':''}> ${FEATS[k]}`;
+  l.firstChild.onchange=e=>{db.f[k]=e.target.checked;save();applyF();draw()};$('feat').append(l)});
+ $('users').innerHTML='';db.users.forEach((u,i)=>{const d=document.createElement('div');d.className='row';d.innerHTML=`<div>${esc(u.name)} <span class="mu">${u.role}</span></div>${u===me?'<span class="s mu">you</span>':'<button class="s">Remove</button>'}`;
+  const b=d.querySelector('button');if(b)b.onclick=()=>ask('Remove '+u.name+'?',()=>{db.users.splice(i,1);save();drawSet()});$('users').append(d)})}
+$('ssn').onclick=()=>{db.shop=$('sn').value.trim()||'QuickBill';const nu=$('su').value.trim();
+ if(nu===db.upi){save();draw();return toast('Saved')}
+ const done=()=>{db.upi=nu;save();draw();toast('UPI ID saved')};
+ if(!db.secpw)ask('Create a security password (min 4 characters). You will need it to change the UPI ID.',v=>{if(v.length<4)return toast('Password too short');db.secpw=h(v);done()},'','password');
+ else ask('Enter the security password to change the UPI ID',v=>{if(h(v)!==db.secpw){$('su').value=db.upi;return toast('Wrong password, UPI ID not changed')}done()},'','password')};
+$('cpw').onclick=()=>{const setNew=()=>ask('New security password (min 4 characters)',w=>{if(w.length<4)return toast('Password too short');db.secpw=h(w);save();toast('Security password changed')},'','password');
+ if(db.secpw)ask('Current security password',v=>{if(h(v)!==db.secpw)return toast('Wrong password');setNew()},'','password');else setNew()};
+$('addu').onclick=()=>{const n=$('un').value.trim(),p=$('up').value;if(!n||!/^\d{4}$/.test(p))return alert('Enter name and a 4-digit PIN');if(db.users.some(u=>u.pin===h(p)))return alert('That PIN is already used by another account');if(db.users.some(u=>u.name===n))return alert('Name already used');
+ db.users.push({name:n,pin:h(p),role:$('ur').value});$('un').value=$('up').value='';save();drawSet()};
+$('exp').onclick=()=>{try{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(db)],{type:'application/json'}));a.download='quickbill-backup.json';a.click()}catch(e){alert('Export not available here')}};
+$('imp').onclick=()=>$('file').click();
+$('file').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const s=JSON.parse(r.result);db=Object.assign(def(),s);db.f=Object.assign(def().f,s.f);save();me=db.users.find(u=>u.name===me.name)||db.users[0];applyF();draw();alert('Restored')}catch(x){alert('Invalid file')}};r.readAsText(f)};
+function drawHome(){const t=db.bills.filter(b=>sameDay(b.date));$('hi').textContent='Hello, '+me.name+' 👋';$('hstats').style.display=owner()?'':'none';
+ $('hs').textContent=R(t.reduce((s,b)=>s+b.total,0));$('hb').textContent=t.length;
+ const T=[['bill','🧾','New bill','teal',1],['items','📦','Items','blue',owner()],['cust','📒','Udhaar','amber',db.f.udhaar],['rep','📊','Reports','violet',owner()]].filter(x=>x[4]);
+ $('tiles').innerHTML='';T.forEach(x=>{const b=document.createElement('button');b.dataset.c=x[3];b.innerHTML='<i>'+x[1]+'</i><span>'+x[2]+'</span>';b.onclick=()=>{tab=x[0];applyF();draw()};$('tiles').append(b)})}
+function draw(){drawKnown();$('shop').textContent=db.shop;$('who').textContent=me.name;drawHome();drawBill();if(owner()){drawItems();drawRep();drawSet()}drawCust()}
+let sn=null;try{sn=sessionStorage.getItem('qb_me')}catch(e){}
+const su=db.users.find(u=>u.name===sn);su?enter(su):boot();
+if('serviceWorker' in navigator&&location.protocol.indexOf('http')===0){try{navigator.serviceWorker.register('sw.js').catch(()=>{})}catch(e){}}
+</script></body></html>
