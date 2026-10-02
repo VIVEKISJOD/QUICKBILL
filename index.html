@@ -95,7 +95,7 @@ body.liquid .tiles button{box-shadow:0 10px 24px #0003,inset 0 1px 0 #ffffff66}
 </style></head><body>
 <div class="ov on" id="auth"><div class="card" id="authBody"></div></div>
 <div id="app" style="display:none">
-<div class="hd"><h1>🧾 <span id="shop"></span></h1><div class="hr"><button id="gear" title="Settings" style="display:none">⚙️</button><div class="uchip"><span class="av" id="uav"></span><span class="un"><b id="who"></b><small id="urole"></small></span></div></div></div>
+<div class="hd"><h1>🧾 <span id="shop"></span><i id="sdot" style="display:none;width:9px;height:9px;border-radius:50%;margin-left:7px;vertical-align:middle;background:#dc2626"></i></h1><div class="hr"><button id="gear" title="Settings" style="display:none">⚙️</button><div class="uchip"><span class="av" id="uav"></span><span class="un"><b id="who"></b><small id="urole"></small></span></div></div></div>
 <div class="tabs">
 <section id="t-home"><div class="card"><div class="b" id="hi"></div><div class="row" id="hstats"><div>Today's sales<div class="b" id="hs" style="font-size:22px"></div></div><div>Bills<div class="b" id="hb" style="font-size:22px"></div></div></div></div><div class="tiles" id="tiles"></div><button id="out" class="big" style="margin-top:16px;display:none">Logout</button></section>
 <section id="t-bill">
@@ -139,6 +139,7 @@ body.liquid .tiles button{box-shadow:0 10px 24px #0003,inset 0 1px 0 #ffffff66}
   <div class="row"><input id="sn" placeholder="Shop name"></div>
   <div class="row"><input id="su" placeholder="UPI ID (e.g. shop@upi)"><button id="ssn" class="s">Save</button></div>
   <div class="row"><button id="cpw">Change security password</button></div></div>
+ <div class="card" id="syncbox"></div>
  <div class="card"><div class="b">Appearance</div><label class="t"><input type="checkbox" id="liq"> Liquid glass look</label></div>
  <div class="card"><div class="b">Features</div><div id="feat"></div></div>
  <div class="card"><div class="b">Accounts</div><div id="users"></div>
@@ -158,7 +159,7 @@ const FEATS={discount:'Discount option at billing',gst:'GST on bills & items',up
 const def=()=>({shop:'QuickBill',upi:'',users:[],f:{discount:true,gst:true,upi:true,udhaar:true,stock:true,sms:true,liquid:true,lock:true},items:[{id:1,name:'Sample item',price:100,gst:5,stock:50,code:'1001'}],bills:[],pay:[],n:1,carry:[]});
 let db=def();
 try{const s=JSON.parse(localStorage.getItem(K)||'null');if(s){db=Object.assign(def(),s);db.f=Object.assign(def().f,s.f)}}catch(e){}
-const save=()=>{try{localStorage.setItem(K,JSON.stringify(db))}catch(e){}};
+const save=()=>{try{localStorage.setItem(K,JSON.stringify(db))}catch(e){}try{QBSync.changed()}catch(e){}};
 const h=s=>{let x=5381;for(const c of String(s))x=((x<<5)+x+c.charCodeAt(0))|0;return String(x)};
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const R=n=>'₹'+(Math.round(n*100)/100).toFixed(2).replace(/\.00$/,'');
@@ -178,8 +179,9 @@ function boot(){if(db.users.length&&!db.f.lock)return enter(db.users.find(u=>u.r
  <label class="fl">Create 4-digit PIN</label><input id="a3" class="pin" placeholder="••••" inputmode="numeric" type="password" maxlength="4">
  <label class="fl">Security password <span style="font-weight:400">(needed to change UPI ID)</span></label><input id="a5" type="password" placeholder="Min 4 characters">
  <label class="fl">UPI ID <span style="font-weight:400">(optional, for QR payments)</span></label><input id="a4" placeholder="shop@upi">
- <button class="pri big" id="ab">Create account &amp; start</button>`;
-  $('ab').onclick=()=>{const n=$('a2').value.trim(),p=$('a3').value;if(!n||!/^\d{4}$/.test(p))return toast('Enter your name and a 4-digit PIN');if($('a5').value.length<4)return toast('Security password needs 4+ characters');
+ <button class="pri big" id="ab">Create account &amp; start</button>
+ <button class="big" id="cn2" style="margin-top:8px">Connect to an existing shop</button>`;
+  $('cn2').onclick=()=>QBSync.connectScreen();$('ab').onclick=()=>{const n=$('a2').value.trim(),p=$('a3').value;if(!n||!/^\d{4}$/.test(p))return toast('Enter your name and a 4-digit PIN');if($('a5').value.length<4)return toast('Security password needs 4+ characters');
    db.shop=$('a1').value.trim()||'QuickBill';db.upi=$('a4').value.trim();db.secpw=h($('a5').value);db.users.push({name:n,pin:h(p),role:'owner'});save();enter(db.users[0])}}
  else{pv='';
   A.innerHTML=`<div class="logo">🧾</div><h1 class="ah">${esc(db.shop)}</h1><p class="as">Enter your 4-digit PIN</p><div class="dots" id="dots"></div><div class="kp" id="kp"></div>`;
@@ -391,7 +393,7 @@ function drawRep(){const nowK=mk(Date.now());if(!repM)repM=nowK;
   if(db.secpw)ask('Enter the security password to delete',v=>{if(h(v)!==db.secpw)return toast('Wrong password, nothing deleted');go()},'','password');else go()})}
 /* ---------- settings ---------- */
 $('liq').onchange=e=>{db.f.liquid=e.target.checked;save();applyF()};
-function drawSet(){$('liq').checked=!!db.f.liquid;$('sn').value=db.shop;$('su').value=db.upi;
+function drawSet(){QBSync.box();$('liq').checked=!!db.f.liquid;$('sn').value=db.shop;$('su').value=db.upi;
  $('feat').innerHTML='';Object.keys(FEATS).forEach(k=>{const l=document.createElement('label');l.className='t';l.innerHTML=`<input type="checkbox" ${db.f[k]?'checked':''}> ${FEATS[k]}`;
   l.firstChild.onchange=e=>{db.f[k]=e.target.checked;save();applyF();draw()};$('feat').append(l)});
  $('users').innerHTML='';db.users.forEach((u,i)=>{const d=document.createElement('div');d.className='row';d.innerHTML=`<div>${esc(u.name)} <span class="mu">${u.role}</span></div>${u===me?'<span class="s mu">you</span>':'<button class="s">Remove</button>'}`;
@@ -413,6 +415,211 @@ function drawHome(){const t=db.bills.filter(b=>sameDay(b.date));$('hi').textCont
  const T=[['bill','🧾','New bill','teal',1],['items','📦','Items','blue',owner()],['cust','📒','Udhaar','amber',db.f.udhaar],['rep','📊','Reports','violet',owner()]].filter(x=>x[4]);
  $('tiles').innerHTML='';T.forEach(x=>{const b=document.createElement('button');b.dataset.c=x[3];b.innerHTML='<i>'+x[1]+'</i><span>'+x[2]+'</span>';b.onclick=()=>{tab=x[0];applyF();draw()};$('tiles').append(b)})}
 function draw(){drawKnown();$('shop').textContent=db.shop;$('who').textContent=me.name;$('uav').textContent=(me.name.trim()[0]||'?').toUpperCase();$('urole').textContent=me.role;drawHome();drawBill();if(owner()){drawItems();drawRep();drawSet()}drawCust()}
+/* ---------- cloud sync (one shop shared by several devices) ---------- */
+const QBSync=(()=>{
+const SYNC_URL='https://quickbillggs-default-rtdb.firebaseio.com';/* paste your Firebase Realtime Database URL here, e.g. https://quickbill-xxxx-default-rtdb.firebaseio.com */
+const CK='quickbill_sync',BK='quickbill_sync_base';
+const ser=o=>JSON.stringify(o,(k,v)=>v&&typeof v==='object'&&!Array.isArray(v)?Object.keys(v).sort().reduce((a,x)=>(a[x]=v[x],a),{}):v);
+const eq=(a,b)=>ser(a)===ser(b),cp=o=>o===undefined?undefined:JSON.parse(JSON.stringify(o));
+const KEYS={items:i=>i.id,users:u=>u.name,carry:c=>c.cust,bills:b=>b.no+'|'+b.date,pay:p=>p.cust+'|'+p.date+'|'+p.amt};
+const DELTA={stock:1,amt:1};
+/* ---- 3-way merge: base (last synced) / local / remote ---- */
+function mObj(b,l,r){const o={...r};
+ for(const f of new Set([...Object.keys(b),...Object.keys(l)])){
+  if(eq(l[f],b[f]))continue;
+  if(l[f]===undefined){delete o[f];continue}
+  if(DELTA[f]&&typeof l[f]==='number'&&typeof b[f]==='number'&&typeof r[f]==='number')o[f]=Math.round((r[f]+l[f]-b[f])*1000)/1000;
+  else o[f]=l[f]}
+ return o}
+function mArr(B,L,R,key){B=B||[];L=L||[];R=R||[];
+ const bm=new Map(B.map(x=>[key(x),x])),lm=new Map(L.map(x=>[key(x),x])),seen=new Set(),out=[];
+ R.forEach(r=>{const k=key(r);if(seen.has(k))return;seen.add(k);
+  if(!lm.has(k)&&bm.has(k))return;
+  const l=lm.get(k),b=bm.get(k);out.push(l&&b?mObj(b,l,r):r)});
+ L.forEach(l=>{const k=key(l);if(seen.has(k)||bm.has(k))return;seen.add(k);out.push(l)});
+ return out}
+function mCore(B,L,R){const o={...R};
+ for(const k of Object.keys(L)){
+  if(KEYS[k])o[k]=mArr(B[k],L[k],R[k],KEYS[k]);
+  else if(k==='n')o.n=Math.max(L.n||0,R.n||0);
+  else if(k==='f')o.f=mObj(B.f||{},L.f||{},R.f||{});
+  else if(!eq(L[k],B[k]))o[k]=L[k]}
+ return o}
+const bkey=n=>n[0]==='b'?KEYS.bills:KEYS.pay;
+const mergeChunk=(n,B,L,R)=>n==='core'?mCore(B,L,R):mArr(B,L,R,bkey(n));
+/* ---- split the shop data into small pieces: core + one piece per month of bills / udhaar payments ---- */
+const mon=d=>new Date(d).toISOString().slice(0,7).replace('-','_');
+const cname=(f,x)=>(f==='bills'?'b':'p')+mon(x.date);
+function split(d){const c={core:{}};
+ Object.keys(d).forEach(k=>{if(k!=='bills'&&k!=='pay')c.core[k]=d[k]});
+ (d.bills||[]).forEach(x=>{const n=cname('bills',x);(c[n]=c[n]||[]).push(x)});
+ (d.pay||[]).forEach(x=>{const n=cname('pay',x);(c[n]=c[n]||[]).push(x)});
+ return c}
+function assemble(ch){const core=ch.core,d=Object.assign(def(),cp(core));d.f=Object.assign(def().f,core.f||{});d.bills=[];d.pay=[];
+ Object.keys(ch).sort().forEach(n=>{if(n[0]==='b')d.bills.push(...ch[n]);else if(n[0]==='p')d.pay.push(...ch[n])});
+ d.bills.sort((a,b)=>a.date-b.date);d.pay.sort((a,b)=>a.date-b.date);return d}
+function reuse(oa,na,key){const m=new Map((oa||[]).map(x=>[key(x),x]));
+ return na.map(n=>{const o=m.get(key(n));if(!o)return n;
+  if(!eq(o,n)){Object.keys(o).forEach(p=>{if(!(p in n))delete o[p]});Object.assign(o,n)}return o})}
+/* ---- state ---- */
+let cfg=null,base={},T={},KP=null,es=null,q=Promise.resolve(),pq=false,etagOK=true,state='off',ct=null,rt=null,dt=null;
+try{cfg=JSON.parse(localStorage.getItem(CK)||'null')}catch(e){cfg=null}
+try{const s=JSON.parse(localStorage.getItem(BK)||'null');if(s){base=s.c||{};T=s.t||{}}}catch(e){}
+const persistBase=()=>{try{localStorage.setItem(BK,JSON.stringify({c:base,t:T}))}catch(e){}};
+const persistDb=()=>{try{localStorage.setItem(K,JSON.stringify(db))}catch(e){}};
+const norm=s=>String(s||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
+const fmt=(s,n)=>s.replace(new RegExp('(.{'+n+'})(?=.)','g'),'$1-');
+const baseUrl=u=>String(u||'').trim().replace(/\/+$/,'');
+/* ---- crypto: data is encrypted on this device with the shop password; the server only sees scrambled text ---- */
+const te=new TextEncoder(),td=new TextDecoder();
+const b64=u=>{let s='';for(let i=0;i<u.length;i+=0x8000)s+=String.fromCharCode.apply(null,u.subarray(i,i+0x8000));return btoa(s)};
+const unb64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
+async function derive(id,pw){
+ const km=await crypto.subtle.importKey('raw',te.encode(pw),'PBKDF2',false,['deriveKey']);
+ const key=await crypto.subtle.deriveKey({name:'PBKDF2',salt:te.encode('qb1|'+id),iterations:100000,hash:'SHA-256'},km,{name:'AES-GCM',length:256},false,['encrypt','decrypt']);
+ const hb=await crypto.subtle.digest('SHA-256',te.encode('qbpath|'+id+'|'+pw));
+ return{key,path:[...new Uint8Array(hb)].map(x=>x.toString(16).padStart(2,'0')).join('')}}
+const kp=async()=>KP||(KP=await derive(cfg.id,cfg.pw));
+async function enc(o){const{key}=await kp(),iv=crypto.getRandomValues(new Uint8Array(12));
+ const ct=new Uint8Array(await crypto.subtle.encrypt({name:'AES-GCM',iv},key,te.encode(JSON.stringify(o))));
+ const all=new Uint8Array(12+ct.length);all.set(iv);all.set(ct,12);return b64(all)}
+async function dec(s){const{key}=await kp(),a=unb64(s);
+ return JSON.parse(td.decode(await crypto.subtle.decrypt({name:'AES-GCM',iv:a.subarray(0,12)},key,a.subarray(12))))}
+/* ---- Firebase Realtime Database over plain REST ---- */
+async function nurl(n){const k=await kp();return baseUrl(cfg.url)+'/shops/'+k.path+(n?'/'+n:'')+'.json'}
+async function get(n){
+ const r=await fetch(await nurl(n),{cache:'no-store',headers:etagOK?{'X-Firebase-ETag':'true'}:{}});
+ if(!r.ok)throw new Error('http'+r.status);
+ const j=await r.json();return{obj:j&&j.d?await dec(j.d):null,etag:r.headers.get('ETag'),t:j&&j.t}}
+async function put(n,obj,etag){const t=Date.now(),h={'Content-Type':'application/json'};
+ if(etag&&etagOK)h['if-match']=etag;
+ const r=await fetch(await nurl(n),{method:'PUT',headers:h,body:JSON.stringify({d:await enc(obj),t})});
+ if(r.status===412)return false;
+ if(!r.ok)throw new Error('http'+r.status);
+ T[n]=t;return true}
+/* ---- apply a merged piece to the live data (in place, so open screens keep working) ---- */
+function setChunk(n,m){
+ if(n==='core'){const nm=Object.assign(def(),cp(m));nm.f=Object.assign(def().f,m.f||{});
+  ['items','users','carry'].forEach(k=>{nm[k]=reuse(db[k],nm[k]||[],KEYS[k])});
+  const bl=db.bills,pa=db.pay;Object.keys(db).forEach(k=>delete db[k]);Object.assign(db,nm);db.bills=bl;db.pay=pa}
+ else{const f=n[0]==='b'?'bills':'pay',old=(db[f]||[]).filter(x=>cname(f,x)===n),rest=(db[f]||[]).filter(x=>cname(f,x)!==n);
+  db[f]=rest.concat(reuse(old,m,bkey(n))).sort((a,b)=>a.date-b.date)}
+ persistDb();clearTimeout(dt);dt=setTimeout(redraw,60)}
+function integrate(n,R){
+ const empty=n==='core'?{}:[],L0=split(db)[n],L=L0===undefined?empty:L0;let m;
+ if(R==null)m=L;
+ else{const B=base[n]!==undefined?base[n]:(n==='core'?R:[]);m=mergeChunk(n,B,L,R)}
+ if(!eq(m,L))setChunk(n,m);
+ if(R==null)delete base[n];else base[n]=cp(R);
+ persistBase();return m}
+function redraw(){
+ if(typeof me==='undefined'||!me){if($('a1')&&db.users.length)boot();return}
+ if(!db.users.includes(me)){toast('Your account was removed');logout();return}
+ const a=document.activeElement;if(a&&a.closest&&a.closest('#t-set'))return;
+ applyF();draw()}
+/* ---- push / pull ---- */
+async function pushChunk(n){
+ for(let i=0;i<6;i++){
+  let g;try{g=await get(n)}catch(e){if(e instanceof TypeError&&etagOK){etagOK=false;i--;continue}throw e}
+  if(g.t!==undefined)T[n]=g.t;
+  const m=integrate(n,g.obj);
+  if(g.obj!=null&&eq(m,g.obj))return;
+  try{if(await put(n,m,g.etag)){base[n]=cp(m);persistBase();return}}
+  catch(e){if(e instanceof TypeError&&etagOK){etagOK=false;i--;continue}throw e}}
+ throw new Error('conflict')}
+async function doPush(){
+ etagOK=true;let ok=true;const L=split(db);
+ for(const n of new Set([...Object.keys(L),...Object.keys(base)])){
+  const l=L[n]===undefined?(n==='core'?{}:[]):L[n];
+  if(base[n]!==undefined?eq(l,base[n]):(n!=='core'&&!l.length))continue;
+  try{await pushChunk(n)}catch(e){ok=false}}
+ setState(ok?'on':'off');
+ if(!ok){clearTimeout(rt);rt=setTimeout(pushAll,10000)}}
+function pushAll(){if(!cfg)return;setState('sync');if(pq)return;pq=true;q=q.then(()=>{pq=false;return doPush()}).catch(()=>{})}
+function changed(){if(!cfg)return;setState('sync');clearTimeout(ct);ct=setTimeout(pushAll,400)}
+async function remote(n,node){
+ if(!node||!node.d||T[n]===node.t)return;
+ const R=await dec(node.d);T[n]=node.t;
+ const m=integrate(n,R);if(!eq(m,R))pushAll()}
+function onEv(ev){let m;try{m=JSON.parse(ev.data)}catch(e){return}
+ if(!m)return;const p=(m.path||'/').split('/').filter(Boolean),d=m.data;
+ q=q.then(async()=>{
+  if(!p.length){if(d&&typeof d==='object')for(const n of Object.keys(d))await remote(n,d[n])}
+  else if(p.length===1)await remote(p[0],d);
+  setState('on')}).catch(()=>{})}
+async function listen(){
+ stop();if(!cfg)return;
+ try{const u=await nurl();
+  if(window.EventSource){es=new EventSource(u);es.addEventListener('put',onEv);es.addEventListener('patch',onEv);es.onerror=()=>{if(state==='on')setState('off')}}
+ }catch(e){}}
+function stop(){if(es){es.close();es=null}}
+/* ---- status dot ---- */
+function setState(s){state=s;const d=$('sdot');
+ if(d){d.style.display=cfg?'inline-block':'none';d.style.background=s==='on'?'#16a34a':s==='sync'?'#f59e0b':'#dc2626';d.title=label()}
+ const t=$('sst');if(t)t.textContent=label()}
+const label=()=>state==='on'?'Synced':state==='sync'?'Syncing…':'Offline - will sync when connected';
+/* ---- connect / create / disconnect ---- */
+const rnd=n=>{const A='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',b=crypto.getRandomValues(new Uint8Array(n));return[...b].map(x=>A[x%A.length]).join('')};
+function setCfg(c){cfg=c;KP=null;try{localStorage.setItem(CK,JSON.stringify(c))}catch(e){}}
+function useUrl(el){const u=baseUrl(SYNC_URL||(el&&el.value)||(cfg&&cfg.url)||'');
+ if(!/^https:\/\/.+/.test(u)){toast('Enter the Firebase database URL (starts with https://)');return null}return u}
+async function create(url){
+ const c={url,id:rnd(8),pw:rnd(12)};setCfg(c);base={};T={};persistBase();
+ try{await kp();const g=await get('core');if(g.obj)return create(url)}catch(e){setCfg(null);toast('Could not reach the database. Check the URL and your internet.');return false}
+ setState('sync');pushAll();await q;listen();
+ if(state!=='on'){setCfg(null);base={};T={};persistBase();setState('off');toast('Could not save to the database. Check the rules and URL.');return false}
+ return true}
+async function join(url,id,pw){
+ id=norm(id);pw=norm(pw);if(!id||!pw){toast('Enter the ID and password');return false}
+ const old=cfg,oc={url,id,pw};cfg=oc;KP=null;
+ try{
+  const r=await fetch(await nurl(),{cache:'no-store'});if(!r.ok)throw new Error('http'+r.status);
+  const tree=await r.json();
+  if(!tree||!tree.core){cfg=old;KP=null;toast('No shop found with this ID and password');return false}
+  const ch={},tt={};for(const n of Object.keys(tree)){if(tree[n]&&tree[n].d){ch[n]=await dec(tree[n].d);tt[n]=tree[n].t}}
+  const d=assemble(ch);Object.keys(db).forEach(k=>delete db[k]);Object.assign(db,d);persistDb();
+  base=ch;T=tt;persistBase();setCfg(oc);setState('on');listen();return true
+ }catch(e){cfg=old;KP=null;toast('Could not connect. Check the URL, ID, password and internet.');return false}}
+function disconnect(){stop();clearTimeout(ct);clearTimeout(rt);setCfg(null);try{localStorage.removeItem(CK);localStorage.removeItem(BK)}catch(e){}base={};T={};KP=null;cfg=null;setState('off')}
+/* ---- screens ---- */
+const copy=t=>{try{navigator.clipboard.writeText(t);toast('Copied')}catch(e){toast('Could not copy')}};
+function box(){const el=$('syncbox');if(!el)return;
+ if(cfg){
+  el.innerHTML=`<div class="b">Shared shop (sync)</div><div class="mu">This device is connected. Bills, items and udhaar update on every connected device.</div>
+  <div class="row"><div class="mu s">Status</div><div class="b" id="sst">${label()}</div></div>
+  <div class="row"><div class="mu s">ID</div><div class="b">${fmt(cfg.id,4)}</div></div>
+  <div class="row"><div class="mu s">Password</div><div class="b">${fmt(cfg.pw,4)}</div></div>
+  <div class="row"><button id="sy_c">Copy ID &amp; password</button><button id="sy_n">Sync now</button></div>
+  <div class="row"><button class="dng" id="sy_d">Disconnect this device</button></div>
+  <div class="mu">Type the ID and password on the other device under "Connect to an existing shop".</div>`;
+  $('sy_c').onclick=()=>copy('QuickBill shop ID: '+fmt(cfg.id,4)+'\nPassword: '+fmt(cfg.pw,4));
+  $('sy_n').onclick=()=>{pushAll();listen();toast('Syncing…')};
+  $('sy_d').onclick=()=>ask('Disconnect this device? Its data stays here but stops syncing.',()=>{disconnect();box()})}
+ else{
+  el.innerHTML=`<div class="b">Share this shop between devices</div><div class="mu">Create an ID and password here, then connect your other device with them. Everything is kept in sync.</div>
+  ${SYNC_URL?'':'<div class="row"><input id="sy_u" placeholder="Firebase database URL (https://…)"></div>'}
+  <div class="row"><button class="pri" id="sy_new">Create shared shop</button></div>
+  <div class="mu" style="margin-top:10px">Or connect to a shop you already have:</div>
+  <div class="row"><input id="sy_i" placeholder="ID" autocapitalize="characters"><input id="sy_p" placeholder="Password" autocapitalize="characters"></div>
+  <div class="row"><button id="sy_j">Connect to this shop</button></div>`;
+  $('sy_new').onclick=async()=>{const u=useUrl($('sy_u'));if(!u)return;toast('Creating…');if(await create(u))box()};
+  $('sy_j').onclick=()=>{const u=useUrl($('sy_u'));if(!u)return;
+   ask('Connect? The data on THIS device will be replaced by the shared shop data.',async()=>{if(await join(u,$('sy_i').value,$('sy_p').value)){toast('Connected');redraw();box()}})}}}
+function connectScreen(){const A=$('authBody');
+ A.innerHTML=`<div class="logo">🧾</div><h1 class="ah">Connect to your shop</h1><p class="as">Use the ID and password from the other device</p>
+ ${SYNC_URL?'':'<label class="fl">Firebase database URL</label><input id="c_u" placeholder="https://…">'}
+ <label class="fl">Shop ID</label><input id="c_i" autocapitalize="characters" placeholder="XXXX-XXXX">
+ <label class="fl">Password</label><input id="c_p" autocapitalize="characters" placeholder="XXXX-XXXX-XXXX">
+ <button class="pri big" id="c_go">Connect</button><button class="big" id="c_bk" style="margin-top:8px">Back</button>`;
+ $('c_bk').onclick=()=>boot();
+ $('c_go').onclick=async()=>{const u=useUrl($('c_u'));if(!u)return;toast('Connecting…');if(await join(u,$('c_i').value,$('c_p').value)){toast('Connected');boot()}}}
+function init(){
+ if(cfg){setState('sync');listen();pushAll()}else setState('off');
+ window.addEventListener('online',()=>{if(cfg){listen();pushAll()}});
+ document.addEventListener('visibilitychange',()=>{if(cfg&&!document.hidden){if(!es||es.readyState===2)listen();pushAll()}})}
+return{init,changed,box,connectScreen,create,join,_t:{merge:mergeChunk,split,assemble,get cfg(){return cfg}}}
+})();
+QBSync.init();
 let sn=null;try{sn=sessionStorage.getItem('qb_me')}catch(e){}
 const su=db.users.find(u=>u.name===sn);su?enter(su):boot();
 if('serviceWorker' in navigator&&location.protocol.indexOf('http')===0){try{navigator.serviceWorker.register('sw.js').catch(()=>{})}catch(e){}}
