@@ -226,7 +226,7 @@ function add(it){const w=it.unit&&it.unit!=='pcs';
  if(w)ask('Quantity of '+it.name+' ('+U(it.unit)+')',v=>{const q=parseFloat(v);if(q>0)put(q);else toast('Enter a quantity')},'1');else put(1)}
 const hl=(n,q)=>{const i=q?n.toLowerCase().indexOf(q):-1;return i<0?esc(n):esc(n.slice(0,i))+'<mark style="background:#fde68a;color:#1a1d23;border-radius:3px;padding:0 1px">'+esc(n.slice(i,i+q.length))+'</mark>'+esc(n.slice(i+q.length))};
 function quickPicks(){const c={};db.bills.forEach(b=>b.lines.forEach(l=>c[l.id]=(c[l.id]||0)+1));
- const top=db.items.filter(i=>c[i.id]).sort((a,b)=>c[b.id]-c[a.id]).slice(0,8);return top.length?top:db.items.slice(0,8)}
+ const top=db.items.filter(i=>c[i.id]).sort((a,b)=>c[b.id]-c[a.id]).slice(0,3);return top.length?top:db.items.slice(0,3)}
 function drawBill(){const q=$('q').value.trim().toLowerCase();$('res').innerHTML='';
  let L,more=0;
  if(q){const sc=i=>{const n=i.name.toLowerCase();return n.startsWith(q)?0:n.split(/[\s(),-]+/).some(w=>w.startsWith(q))?1:n.includes(q)?2:i.code===q||(i.code||'').includes(q)?0:9};
