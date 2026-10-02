@@ -26,9 +26,9 @@ THINGS TO KNOW BEFORE SELLING
   - Clearing browser data erases the shop's data. Keep a backup.
   - PIN and security password protect against casual use. They are not bank-grade security.
   - UPI QR shows the bill amount for the customer to scan. The app cannot confirm the payment arrived.
-  - SMS and WhatsApp open the phone's own app with the bill typed in. The cashier taps Send.
+  - SMS opens the phone's own messaging app with the bill typed in. The cashier taps Send.
   - The QR picture library loads from the internet the first time (then it is saved for offline use).
   - Bill-photo scanning only works inside Claude, so it is hidden in this hosted version.
 
 UPDATING
-  Replace index.html. If shops do not see the new version, change 'quickbill-v1' to 'quickbill-v2' in sw.js.
+  Replace index.html. If shops do not see the new version, change the version number (now 'quickbill-v2') in sw.js.

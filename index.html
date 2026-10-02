@@ -80,15 +80,24 @@ body.liquid #authBody{--card:rgba(255,255,255,.86)}
 :root[data-theme="dark"] body.liquid #authBody{--card:rgba(24,30,38,.82)}
 body.liquid nav button.on{background:linear-gradient(135deg,#14b8a6,var(--ac));box-shadow:0 4px 12px #0f766e55}
 body.liquid .tiles button{box-shadow:0 10px 24px #0003,inset 0 1px 0 #ffffff66}
+.hd{gap:10px}.hd h1{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hr{display:flex;align-items:center;gap:8px;flex:0 0 auto}
+#gear{width:38px;height:38px;padding:0;border-radius:50%;align-items:center;justify-content:center;font-size:17px;box-shadow:0 1px 2px #0000000a,0 4px 10px #00000010}
+#gear:not([style*="none"]){display:flex}
+.uchip{display:flex;align-items:center;gap:8px;padding:4px 14px 4px 4px;border:1px solid var(--bd);border-radius:999px;background:var(--card);box-shadow:0 1px 2px #0000000a,0 4px 10px #00000010}
+.av{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#14b8a6,#0f766e);color:#fff;font-weight:800;font-size:14px;display:flex;align-items:center;justify-content:center;flex:0 0 auto}
+.un{display:flex;flex-direction:column;line-height:1.15;min-width:0}.un b{font-size:13px;max-width:96px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.un small{font-size:10.5px;color:var(--mu);text-transform:capitalize}
+.dng{color:var(--dn);border-color:var(--dn)}
+.mrow{cursor:pointer;padding:6px 8px;border-radius:10px}.mrow.sel{background:var(--bd)}
 .dots{display:flex;gap:14px;justify-content:center;margin:6px 0 20px}.dots i{width:14px;height:14px;border-radius:50%;border:2px solid var(--ac);transition:background .1s}.dots i.f{background:var(--ac)}
 .kp{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.kp button{padding:14px 0;font-size:22px;font-weight:600;border-radius:16px;width:100%}.kp .x{visibility:hidden}
 @media print{body>*:not(#ov){display:none!important}#ov{position:static;background:none;display:block}#ov .card{border:0}.noprint{display:none}}
 </style></head><body>
 <div class="ov on" id="auth"><div class="card" id="authBody"></div></div>
 <div id="app" style="display:none">
-<div class="hd"><h1>🧾 <span id="shop"></span></h1><div><button id="gear" title="Settings" style="display:none">⚙️</button> <span class="mu" id="who"></span> <button id="out">Logout</button></div></div>
+<div class="hd"><h1>🧾 <span id="shop"></span></h1><div class="hr"><button id="gear" title="Settings" style="display:none">⚙️</button><div class="uchip"><span class="av" id="uav"></span><span class="un"><b id="who"></b><small id="urole"></small></span></div></div></div>
 <div class="tabs">
-<section id="t-home"><div class="card"><div class="b" id="hi"></div><div class="row" id="hstats"><div>Today's sales<div class="b" id="hs" style="font-size:22px"></div></div><div>Bills<div class="b" id="hb" style="font-size:22px"></div></div></div></div><div class="tiles" id="tiles"></div></section>
+<section id="t-home"><div class="card"><div class="b" id="hi"></div><div class="row" id="hstats"><div>Today's sales<div class="b" id="hs" style="font-size:22px"></div></div><div>Bills<div class="b" id="hb" style="font-size:22px"></div></div></div></div><div class="tiles" id="tiles"></div><button id="out" class="big" style="margin-top:16px;display:none">Logout</button></section>
 <section id="t-bill">
  <div class="card"><input id="q" placeholder="Search item or scan barcode, press Enter" autocomplete="off"><div class="chips" id="res"></div></div>
  <div class="card"><div id="cart"></div>
@@ -124,7 +133,7 @@ body.liquid .tiles button{box-shadow:0 10px 24px #0003,inset 0 1px 0 #ffffff66}
   <div class="row"><button id="pgo" class="pri">Apply</button><button id="pun">Undo last change</button></div></div>
  <div class="card"><input id="isq" placeholder="Search inventory…"></div><div class="card" id="items"></div></section>
 <section id="t-cust"><div class="card" id="custs"></div></section>
-<section id="t-rep"><div class="card" id="rep"></div></section>
+<section id="t-rep"><div id="rep"></div></section>
 <section id="t-set">
  <div class="card"><div class="b">Shop</div>
   <div class="row"><input id="sn" placeholder="Shop name"></div>
@@ -135,17 +144,18 @@ body.liquid .tiles button{box-shadow:0 10px 24px #0003,inset 0 1px 0 #ffffff66}
  <div class="card"><div class="b">Accounts</div><div id="users"></div>
   <div class="row"><input id="un" placeholder="Name"><input id="up" placeholder="4-digit PIN" inputmode="numeric" type="password" maxlength="4"></div>
   <div class="row"><select id="ur"><option value="cashier">Cashier</option><option value="owner">Owner</option></select><button id="addu" class="pri">Add account</button></div></div>
+ <div class="card"><button id="out2" class="big dng" style="margin:0">Logout</button></div>
  <div class="card"><div class="row"><button id="exp">Export backup</button><button id="imp">Restore backup</button></div><input id="file" type="file" accept=".json" hidden></div>
 </section></div>
 <nav id="nav"></nav></div>
 <div class="ov" id="ov"><div class="card"><pre id="inv"></pre><div id="invqr"></div>
- <div class="row noprint"><button id="sm" class="pri">SMS</button><button id="wa" class="pri">WhatsApp</button><button id="pr">Print</button><button id="cl">Close</button></div></div></div>
+ <div class="row noprint"><button id="sm" class="pri">SMS</button><button id="pr">Print</button><button id="cl">Close</button></div></div></div>
 <div class="ov" id="dlg"><div class="card"><div id="dm" class="b"></div><input id="di" type="number" style="display:none;margin-top:8px"><div class="row"><button id="dno">Cancel</button><button id="dok" class="pri">OK</button></div></div></div>
 <div id="toast"></div>
 <script>
 const $=id=>document.getElementById(id),K='quickbill_v1';
-const FEATS={discount:'Discount option at billing',gst:'GST on bills & items',upi:'UPI QR payments',udhaar:'Udhaar (credit) & balances',stock:'Stock tracking',sms:'Send bill by SMS',whatsapp:'Send bill on WhatsApp',lock:'PIN lock (ask for PIN when opening the app)'};
-const def=()=>({shop:'QuickBill',upi:'',users:[],f:{discount:true,gst:true,upi:true,udhaar:true,stock:true,sms:true,whatsapp:true,liquid:true,lock:true},items:[{id:1,name:'Sample item',price:100,gst:5,stock:50,code:'1001'}],bills:[],pay:[],n:1});
+const FEATS={discount:'Discount option at billing',gst:'GST on bills & items',upi:'UPI QR payments',udhaar:'Udhaar (credit) & balances',stock:'Stock tracking',sms:'Send bill by SMS',lock:'PIN lock (ask for PIN when opening the app)'};
+const def=()=>({shop:'QuickBill',upi:'',users:[],f:{discount:true,gst:true,upi:true,udhaar:true,stock:true,sms:true,liquid:true,lock:true},items:[{id:1,name:'Sample item',price:100,gst:5,stock:50,code:'1001'}],bills:[],pay:[],n:1,carry:[]});
 let db=def();
 try{const s=JSON.parse(localStorage.getItem(K)||'null');if(s){db=Object.assign(def(),s);db.f=Object.assign(def().f,s.f)}}catch(e){}
 const save=()=>{try{localStorage.setItem(K,JSON.stringify(db))}catch(e){}};
@@ -183,10 +193,11 @@ function checkPin(){const hh=h(pv),u=db.users.filter(x=>x.pin===hh).sort((a,b)=>
  if(pv.length>=4){pv='';drawDots();toast('Wrong PIN');const A=$('authBody');A.classList.remove('shake');void A.offsetWidth;A.classList.add('shake')}}
 document.addEventListener('keydown',e=>{if(!$('auth').classList.contains('on')||!$('dots'))return;if(/^\d$/.test(e.key))press(e.key);else if(e.key==='Backspace')press('⌫')});
 function enter(u){me=u;try{sessionStorage.setItem('qb_me',u.name)}catch(e){}$('auth').classList.remove('on');$('app').style.display='block';tab='home';applyF();draw()}
-$('out').onclick=()=>{me=null;try{sessionStorage.removeItem('qb_me')}catch(e){}cart=[];boot()};
+function logout(){me=null;try{sessionStorage.removeItem('qb_me')}catch(e){}cart=[];boot()}
+$('out').onclick=logout;$('out2').onclick=logout;
 const owner=()=>me&&me.role==='owner';
 /* ---------- features / nav ---------- */
-function applyF(){const f=db.f;document.body.classList.toggle('liquid',!!f.liquid);$('out').style.display=f.lock?'':'none';
+function applyF(){const f=db.f;document.body.classList.toggle('liquid',!!f.liquid);$('out').style.display=f.lock?'':'none';$('out2').parentNode.style.display=f.lock?'':'none';
  $('discbox').style.display=f.discount?'':'none';if(!f.discount){$('dchk').checked=false}
  $('gstrow').style.display=f.gst?'':'none';
  const modes=['Cash'].concat(f.upi?['UPI']:[],['Card'],f.udhaar?['Udhaar']:[]),cur=$('mode').value;
@@ -194,7 +205,7 @@ function applyF(){const f=db.f;document.body.classList.toggle('liquid',!!f.liqui
  $('ig').style.display=f.gst?'':'none';$('is').style.display=f.stock?'':'none';
  const tabs=[['home','Home',1,'🏠'],['bill','Bill',1,'🧾'],['items','Items',owner(),'📦'],['cust','Udhaar',f.udhaar,'📒'],['rep','Reports',owner(),'📊']].filter(t=>t[2]);
  if(!(tab==='set'&&owner())&&!tabs.some(t=>t[0]===tab))tab='home';
- $('gear').style.display=owner()?'':'none';const sv=[];if(f.sms)sv.push('SMS');if(f.whatsapp)sv.push('WhatsApp');const cs=$('sendvia').value;
+ $('gear').style.display=owner()?'':'none';const sv=[];if(f.sms)sv.push('SMS');const cs=$('sendvia').value;
  $('sendvia').innerHTML=['Do not send'].concat(sv).map(m=>'<option>'+m+'</option>').join('');$('sendvia').value=(sv.includes(cs)||cs==='Do not send')?cs:(sv[0]||'Do not send');$('sl').style.display=sv.length?'':'none';
  $('nav').innerHTML='';tabs.forEach(t=>{const b=document.createElement('button');b.innerHTML='<i>'+t[3]+'</i>'+t[1];b.className=t[0]===tab?'on':'';b.onclick=()=>{tab=t[0];applyF();draw()};$('nav').append(b)});
  document.querySelectorAll('.tabs>section').forEach(s=>s.classList.toggle('on',s.id==='t-'+tab))}
@@ -225,7 +236,17 @@ function drawBill(){const q=$('q').value.trim().toLowerCase();$('res').innerHTML
  const t=totals();$('gst').textContent=R(t.gst);$('tot').textContent=R(t.tot);drawQR()}
 let autoN=false,autoP=false;
 const dg=x=>(x||'').replace(/\D/g,'').slice(-10);
-const pend=c=>db.bills.filter(b=>b.mode==='Udhaar'&&b.cust===c).reduce((s,b)=>s+b.total,0)-db.pay.filter(p=>p.cust===c).reduce((s,p)=>s+p.amt,0);
+function udm(){const m={},g=c=>m[c]=m[c]||{tot:0,paid:0};
+ db.bills.forEach(b=>{if(b.mode==='Udhaar'&&!b.cleared)g(b.cust).tot+=b.total});
+ (db.carry||[]).forEach(x=>{g(x.cust).tot+=x.amt});
+ db.pay.forEach(p=>{if(!p.cleared&&m[p.cust])m[p.cust].paid+=p.amt});return m}
+const pend=c=>{const o=udm()[c];return o?o.tot-o.paid:0};
+const mk=d=>{const x=new Date(d);return x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')};
+const mlab=k=>{const a=k.split('-');return new Date(+a[0],a[1]-1,1).toLocaleDateString(undefined,{month:'long',year:'numeric'})};
+function delBills(list){const add={};list.forEach(b=>{if(b.mode==='Udhaar'&&!b.cleared)add[b.cust]=(add[b.cust]||0)+b.total});
+ db.carry=db.carry||[];Object.keys(add).forEach(c=>{const e=db.carry.find(x=>x.cust===c);if(e)e.amt+=add[c];else db.carry.push({cust:c,amt:add[c]})});
+ const st=new Set(list);db.bills=db.bills.filter(b=>!st.has(b));save()}
+function clearCust(c){db.bills.forEach(b=>{if(b.mode==='Udhaar'&&b.cust===c)b.cleared=true});db.pay.forEach(p=>{if(p.cust===c)p.cleared=true});db.carry=(db.carry||[]).filter(x=>x.cust!==c);save()}
 function known(){const m={};db.bills.forEach(b=>{if(b.cust&&dg(b.phone).length===10)m[dg(b.phone)]=b.cust});return m}
 function drawKnown(){const m=known(),nm={};Object.keys(m).forEach(p=>nm[m[p]]=p);
  $('cnl').innerHTML=Object.keys(nm).map(n=>'<option value="'+esc(n)+'">'+nm[n]+'</option>').join('');
@@ -248,21 +269,19 @@ $('save').onclick=(ev,force)=>{if(!cart.length)return alert('Add items first');
  if(db.f.stock&&!force){const sh=cart.find(l=>{const it=db.items.find(i=>i.id===l.id);return it&&it.stock<l.qty});if(sh)return ask(sh.name+' has low stock. Save bill anyway?',()=>$('save').onclick(null,true))}
  const t=totals(),bill={no:db.n++,date:Date.now(),cust:cn,phone:$('cp').value.trim(),lines:cart.map(l=>({...l})),disc:t.d,gst:t.gst,total:t.tot,mode:m,by:me.name};
  if(db.f.stock)cart.forEach(l=>{const it=db.items.find(i=>i.id===l.id);if(it)it.stock=Math.round((it.stock-l.qty)*1000)/1000});
- db.bills.push(bill);save();cart=[];$('disc').value=0;$('dchk').checked=false;$('cn').value='';$('cp').value='';autoN=autoP=false;drawKnown();$('chint').textContent='';show(bill);{const via=$('sendvia').value;if(bill.phone){if(via==='SMS')smsSend(bill);else if(via==='WhatsApp')waSend(bill)}}drawBill()};
+ db.bills.push(bill);save();cart=[];$('disc').value=0;$('dchk').checked=false;$('cn').value='';$('cp').value='';autoN=autoP=false;drawKnown();$('chint').textContent='';show(bill);{const via=$('sendvia').value;if(bill.phone&&via==='SMS')smsSend(bill)}drawBill()};
 function invText(b){const ln='-'.repeat(34);let s=db.shop+'\n'+new Date(b.date).toLocaleString()+'\nBill #'+b.no+(b.cust?'\nCustomer: '+b.cust:'')+'\n'+ln+'\n';
  b.lines.forEach(l=>s+=l.name+'\n  '+l.qty+(l.unit&&l.unit!=='pcs'?' '+U(l.unit):'')+' x '+l.price+' = '+R(l.qty*l.price)+'\n');
  return s+ln+'\n'+(b.disc?'Discount: -'+R(b.disc)+'\n':'')+(db.f.gst?'GST included: '+R(b.gst)+'\n':'')+'TOTAL: '+R(b.total)+'\nPaid by: '+b.mode+(b.mode==='Udhaar'?' (pending)':'')+'\n'+ln+'\nThank you! Visit again.'}
 function show(b){last=b;$('inv').textContent=invText(b);
  $('invqr').innerHTML=b.mode==='UPI'&&db.upi?qrHtml(upiUrl(b.total,'Bill '+b.no))+'<div class="b" style="text-align:center">Scan to pay '+R(b.total)+'</div>':'';
- $('sm').style.display=db.f.sms?'':'none';$('wa').style.display=db.f.whatsapp?'':'none';$('ov').classList.add('on')}
+ $('sm').style.display=db.f.sms?'':'none';$('ov').classList.add('on')}
 $('cl').onclick=()=>$('ov').classList.remove('on');$('pr').onclick=()=>window.print();
 const RS=n=>'Rs.'+(Math.round(n*100)/100);
-function smsText(b){return db.shop+'\nBill #'+b.no+' '+new Date(b.date).toLocaleDateString()+'\n'+b.lines.map(l=>l.name+' x'+l.qty+(l.unit&&l.unit!=='pcs'?U(l.unit):'')).join(', ')+'\nTotal: '+RS(b.total)+(b.disc?' (disc '+RS(b.disc)+')':'')+'\nPaid: '+b.mode+(b.mode==='Udhaar'?' (pending)':'')+'\nThank you!'}
+function smsText(b){return db.shop+'\n'+new Date(b.date).toLocaleDateString()+'\n\n'+b.lines.map(l=>l.name+' x'+l.qty+(l.unit&&l.unit!=='pcs'?U(l.unit):'')).join(', ')+'\n\nTotal: '+RS(b.total)+(b.disc?' (disc '+RS(b.disc)+')':'')+'\nPaid: '+b.mode+(b.mode==='Udhaar'?' (pending)':'')+'\n\nThank you!\n\n\nBill no: '+b.no}
 function smsSend(b){let p=(b.phone||'').replace(/\D/g,'').replace(/^0+/,'');p=p.length===10?'+91'+p:(p?'+'+p:'');
  window.open('sms:'+p+(/iPhone|iPad|iPod/.test(navigator.userAgent)?'&':'?')+'body='+encodeURIComponent(smsText(b)),'_blank')}
 $('sm').onclick=()=>smsSend(last);
-function waSend(b){let p=(b.phone||'').replace(/\D/g,'').replace(/^0+/,'');if(p.length===10)p='91'+p;window.open('https://wa.me/'+p+'?text='+encodeURIComponent(invText(b)),'_blank')}
-$('wa').onclick=()=>waSend(last);
 $('gear').onclick=()=>{tab='set';applyF();draw()};
 /* ---------- items / udhaar / reports ---------- */
 function drawItems(){const q=$('isq').value.trim().toLowerCase(),L=db.items.filter(i=>!q||i.name.toLowerCase().includes(q)||(i.code||'').includes(q));
@@ -313,21 +332,51 @@ $('addi').onclick=()=>{const n=$('in').value.trim(),p=+$('ip').value;if(!n||$('i
  const o={name:n,code:$('ic').value.trim(),price:p,gst:+$('ig').value||0,stock:+$('is').value||0,unit:$('iu').value},id=+$('addi').dataset.id;
  if(id){Object.assign(db.items.find(i=>i.id===id),o);delete $('addi').dataset.id}else db.items.push({id:Date.now(),...o});
  ['in','ic','ip','is'].forEach(k=>$(k).value='');$('iu').value='pcs';save();drawItems();drawBill()};
-function drawCust(){const m={};
- db.bills.filter(b=>b.mode==='Udhaar').forEach(b=>{const c=m[b.cust]=m[b.cust]||{tot:0,paid:0};c.tot+=b.total});
- db.pay.forEach(p=>{if(m[p.cust])m[p.cust].paid+=p.amt});
- const pe=c=>m[c].tot-m[c].paid>0.005,k=Object.keys(m).sort((a,b)=>pe(b)-pe(a));
- $('custs').innerHTML='<div class="b">Udhaar</div>'+(k.length?'':'<div class="mu">No udhaar yet.</div>');
+function drawCust(){const m=udm(),ow=owner();
+ const pe=c=>m[c].tot-m[c].paid>0.005,k=Object.keys(m).sort((a,b)=>pe(b)-pe(a)),old=k.filter(c=>!pe(c));
+ $('custs').innerHTML='<div class="row"><div class="b">Udhaar</div>'+(ow&&old.length?'<button class="s dng" id="clrold">Delete settled ('+old.length+')</button>':'')+'</div>'+(k.length?'':'<div class="mu">No udhaar yet.</div>');
+ const co=$('clrold');if(co)co.onclick=()=>ask('Delete the udhaar records of '+old.length+' customer(s) who have paid everything? Your sales reports are not changed.',()=>{old.forEach(clearCust);toast('Old udhaar records deleted');draw()});
  k.forEach(c=>{const o=m[c],bal=Math.round((o.tot-o.paid)*100)/100,d=document.createElement('div');d.className='row';
-  d.innerHTML=`<div>${esc(c)}<div class="mu">Total ${R(o.tot)} · Received ${R(o.paid)}</div></div>`+(pe(c)?`<div class="s b low">${R(bal)} pending</div><button class="s pri">Received</button>`:'<div class="s b ok">✓ Received</div>');
-  if(pe(c))d.querySelector('button').onclick=()=>ask('Amount received from '+c+' (₹)',v=>{const a=parseFloat(v);if(!(a>0))return toast('Enter a valid amount');db.pay.push({cust:c,amt:Math.min(a,o.tot-o.paid),date:Date.now()});save();drawCust();toast('Payment recorded')},bal);
+  d.innerHTML=`<div>${esc(c)}<div class="mu">Total ${R(o.tot)} · Received ${R(o.paid)}</div></div>`+(pe(c)?`<div class="s b low">${R(bal)} pending</div><button class="s pri" data-a="r">Received</button>`:'<div class="s b ok">✓ Received</div>')+(ow?'<button class="s" data-a="d" title="Delete record">🗑</button>':'');
+  const rb=d.querySelector('[data-a=r]');if(rb)rb.onclick=()=>ask('Amount received from '+c+' (₹)',v=>{const a=parseFloat(v);if(!(a>0))return toast('Enter a valid amount');db.pay.push({cust:c,amt:Math.min(a,o.tot-o.paid),date:Date.now()});save();drawCust();toast('Payment recorded')},bal);
+  const db_=d.querySelector('[data-a=d]');if(db_)db_.onclick=()=>ask('Delete the udhaar record of '+c+'?'+(pe(c)?' '+R(bal)+' is still pending and will be forgotten.':'')+' Sales reports are not changed.',()=>{clearCust(c);toast('Record deleted');draw()});
   $('custs').append(d)})}
-function drawRep(){const t=db.bills.filter(b=>sameDay(b.date)),by={},top={};t.forEach(b=>{by[b.mode]=(by[b.mode]||0)+b.total;b.lines.forEach(l=>top[l.name]=(top[l.name]||0)+l.qty)});
+let repM=null;
+function drawRep(){const nowK=mk(Date.now());if(!repM)repM=nowK;
+ const t=db.bills.filter(b=>sameDay(b.date)),by={},top={};t.forEach(b=>{by[b.mode]=(by[b.mode]||0)+b.total;b.lines.forEach(l=>top[l.name]=(top[l.name]||0)+l.qty)});
  const sum=t.reduce((s,b)=>s+b.total,0),low=db.f.stock?db.items.filter(i=>i.stock<=5):[];
- $('rep').innerHTML=`<div class="b">Today</div><div class="row"><div>Sales<div class="b" style="font-size:22px">${R(sum)}</div></div><div>Bills<div class="b" style="font-size:22px">${t.length}</div></div></div>
- <div class="mu">By payment mode</div>${Object.keys(by).map(k=>`<div class="row"><span>${k}</span><span class="r">${R(by[k])}</span></div>`).join('')||'<div class="mu">No sales yet</div>'}
- <div class="mu" style="margin-top:8px">Top items</div>${Object.entries(top).sort((a,b)=>b[1]-a[1]).slice(0,5).map(([n,q])=>`<div class="row"><span>${esc(n)}</span><span class="r">${q} sold</span></div>`).join('')||'<div class="mu">–</div>'}
- ${db.f.stock?`<div class="mu" style="margin-top:8px">Low stock (≤5)</div>${low.map(i=>`<div class="row low"><span>${esc(i.name)}</span><span class="r">${i.stock} left</span></div>`).join('')||'<div class="mu">All good</div>'}`:''}`}
+ const mon={};db.bills.forEach(b=>{const o=mon[mk(b.date)]=mon[mk(b.date)]||{s:0,n:0};o.s+=b.total;o.n++});
+ const keys=Object.keys(mon).sort().reverse();
+ const mb=db.bills.filter(b=>mk(b.date)===repM).sort((a,b)=>b.date-a.date),ms=mb.reduce((s,b)=>s+b.total,0);
+ const mby={},mtop={},ud={};
+ mb.forEach(b=>{mby[b.mode]=(mby[b.mode]||0)+b.total;b.lines.forEach(l=>mtop[l.name]=(mtop[l.name]||0)+l.qty);if(b.mode==='Udhaar'){const u=ud[b.cust]=ud[b.cust]||{amt:0,n:0};u.amt+=b.total;u.n++}});
+ const udT=Object.values(ud).reduce((s,u)=>s+u.amt,0),rec=db.pay.filter(p=>mk(p.date)===repM).reduce((s,p)=>s+p.amt,0);
+ const big='font-size:22px',mu=x=>'<div class="mu" style="margin-top:8px">'+x+'</div>',rw=(a,b)=>`<div class="row"><span>${a}</span><span class="r">${b}</span></div>`;
+ $('rep').innerHTML=`<div class="card"><div class="b">Today</div><div class="row"><div>Sales<div class="b" style="${big}">${R(sum)}</div></div><div>Bills<div class="b" style="${big}">${t.length}</div></div></div>
+ ${mu('By payment mode')}${Object.keys(by).map(k=>rw(k,R(by[k]))).join('')||'<div class="mu">No sales yet</div>'}
+ ${mu('Top items')}${Object.entries(top).sort((a,b)=>b[1]-a[1]).slice(0,5).map(([n,q])=>rw(esc(n),q+' sold')).join('')||'<div class="mu">–</div>'}
+ ${db.f.stock?`${mu('Low stock (≤5)')}${low.map(i=>`<div class="row low"><span>${esc(i.name)}</span><span class="r">${i.stock} left</span></div>`).join('')||'<div class="mu">All good</div>'}`:''}</div>
+ <div class="card"><div class="b">Monthly report</div>
+ <div class="row"><input type="month" id="rm" value="${repM}" max="${nowK}"></div>
+ <div class="b" style="margin-top:6px">${mlab(repM)}</div>
+ <div class="row"><div>Total sales<div class="b" style="${big}">${R(ms)}</div></div><div>Bills<div class="b" style="${big}">${mb.length}</div></div></div>
+ ${db.f.udhaar?`<div class="row"><div>Udhaar given<div class="b low">${R(udT)}</div></div><div>Udhaar received<div class="b ok">${R(rec)}</div></div></div>`:''}
+ ${mb.length?`${mu('By payment mode')}${Object.keys(mby).map(k=>rw(k,R(mby[k]))).join('')}`:'<div class="mu">No sales in this month.</div>'}
+ ${db.f.udhaar&&Object.keys(ud).length?`${mu('Who took udhaar this month')}${Object.keys(ud).sort((a,b)=>ud[b].amt-ud[a].amt).map(c=>`<div class="row"><div>${esc(c)}<div class="mu">${ud[c].n} bill${ud[c].n>1?'s':''}${pend(c)>0.005?' · '+R(pend(c))+' pending now':' · all paid'}</div></div><div class="s b low r">${R(ud[c].amt)}</div></div>`).join('')}`:''}
+ ${mb.length?`${mu('Top items')}${Object.entries(mtop).sort((a,b)=>b[1]-a[1]).slice(0,8).map(([n,q])=>rw(esc(n),q+' sold')).join('')}`:''}</div>
+ <div class="card"><div class="b">All months</div>${keys.length?keys.map(k=>`<div class="row mrow ${k===repM?'sel':''}" data-k="${k}"><span class="b">${mlab(k)}</span><span class="s mu">${mon[k].n} bill${mon[k].n>1?"s":""}</span><span class="r b">${R(mon[k].s)}</span></div>`).join(''):'<div class="mu">No bills yet.</div>'}</div>
+ <div class="card"><div class="b">Bills in ${mlab(repM)}</div>${mb.length?'':'<div class="mu">No bills.</div>'}<div id="mbills"></div>
+ ${mb.length?`<button class="dng" id="dmon" style="width:100%;margin-top:10px">🗑 Delete ${mlab(repM)} history (${mb.length} bills)</button><div class="mu" style="margin-top:6px">Unpaid udhaar balances are kept. Take an Export backup first (Settings) if unsure.</div>`:''}</div>`;
+ $('rm').onchange=e=>{repM=e.target.value||nowK;drawRep()};
+ document.querySelectorAll('#rep .mrow').forEach(r=>r.onclick=()=>{repM=r.dataset.k;drawRep()});
+ mb.slice(0,100).forEach(b=>{const d=document.createElement('div');d.className='row';
+  d.innerHTML=`<div>${new Date(b.date).toLocaleDateString()} ${new Date(b.date).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}<div class="mu">Bill ${b.no}${b.cust?' · '+esc(b.cust):''} · ${b.mode}</div></div><div class="s b">${R(b.total)}</div><button class="s">View</button><button class="s">✕</button>`;
+  const [v,x]=d.querySelectorAll('button');v.onclick=()=>show(b);
+  x.onclick=()=>ask('Delete bill '+b.no+' ('+R(b.total)+')? Stock is not changed.',()=>{delBills([b]);toast('Bill deleted');draw()});$('mbills').append(d)});
+ if(mb.length>100)$('mbills').insertAdjacentHTML('beforeend','<div class="mu">Showing newest 100 of '+mb.length+'.</div>');
+ const dm=$('dmon');if(dm)dm.onclick=()=>ask('Delete all '+mb.length+' bills of '+mlab(repM)+' ('+R(ms)+')? This cannot be undone.',()=>{
+  const go=()=>{delBills(mb);toast(mlab(repM)+' history deleted');draw()};
+  if(db.secpw)ask('Enter the security password to delete',v=>{if(h(v)!==db.secpw)return toast('Wrong password, nothing deleted');go()},'','password');else go()})}
 /* ---------- settings ---------- */
 $('liq').onchange=e=>{db.f.liquid=e.target.checked;save();applyF()};
 function drawSet(){$('liq').checked=!!db.f.liquid;$('sn').value=db.shop;$('su').value=db.upi;
@@ -351,7 +400,7 @@ function drawHome(){const t=db.bills.filter(b=>sameDay(b.date));$('hi').textCont
  $('hs').textContent=R(t.reduce((s,b)=>s+b.total,0));$('hb').textContent=t.length;
  const T=[['bill','🧾','New bill','teal',1],['items','📦','Items','blue',owner()],['cust','📒','Udhaar','amber',db.f.udhaar],['rep','📊','Reports','violet',owner()]].filter(x=>x[4]);
  $('tiles').innerHTML='';T.forEach(x=>{const b=document.createElement('button');b.dataset.c=x[3];b.innerHTML='<i>'+x[1]+'</i><span>'+x[2]+'</span>';b.onclick=()=>{tab=x[0];applyF();draw()};$('tiles').append(b)})}
-function draw(){drawKnown();$('shop').textContent=db.shop;$('who').textContent=me.name;drawHome();drawBill();if(owner()){drawItems();drawRep();drawSet()}drawCust()}
+function draw(){drawKnown();$('shop').textContent=db.shop;$('who').textContent=me.name;$('uav').textContent=(me.name.trim()[0]||'?').toUpperCase();$('urole').textContent=me.role;drawHome();drawBill();if(owner()){drawItems();drawRep();drawSet()}drawCust()}
 let sn=null;try{sn=sessionStorage.getItem('qb_me')}catch(e){}
 const su=db.users.find(u=>u.name===sn);su?enter(su):boot();
 if('serviceWorker' in navigator&&location.protocol.indexOf('http')===0){try{navigator.serviceWorker.register('sw.js').catch(()=>{})}catch(e){}}
