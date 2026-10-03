@@ -104,7 +104,9 @@ body.liquid .tiles button{box-shadow:0 10px 24px #0003,inset 0 1px 0 #ffffff66}
   <div id="discbox"><label class="t"><input type="checkbox" id="dchk"> Apply discount</label>
   <div class="row" id="dval" style="display:none"><span class="s mu">Discount ₹</span><input id="disc" type="number" min="0" value="0"></div></div>
   <div class="row" id="gstrow"><span class="mu">GST included</span><span class="r mu" id="gst">₹0</span></div>
-  <div class="row"><span class="b">Total</span><span class="r b" id="tot" style="font-size:20px">₹0</span></div></div>
+  <div class="row"><span class="b">Total</span><span class="r b" id="tot" style="font-size:20px">₹0</span></div>
+  <div class="row" id="advrow"><span class="mu">Advance received ₹</span><input id="adv" type="number" min="0" step="any" value="0" style="max-width:120px;text-align:right"></div>
+  <div class="row" id="duerow" style="display:none"><span class="b">Due</span><span class="r b low" id="duev">₹0</span></div></div>
  <div class="card">
   <div class="row"><input id="cp" placeholder="Customer phone" inputmode="tel" list="cpl"><input id="cn" placeholder="Customer name" list="cnl"></div><datalist id="cpl"></datalist><datalist id="cnl"></datalist>
   <div class="mu" id="chint" style="min-height:0"></div>
@@ -149,14 +151,14 @@ body.liquid .tiles button{box-shadow:0 10px 24px #0003,inset 0 1px 0 #ffffff66}
  <div class="card"><div class="row"><button id="exp">Export backup</button><button id="imp">Restore backup</button></div><input id="file" type="file" accept=".json" hidden></div>
 </section></div>
 <nav id="nav"></nav></div>
-<div class="ov" id="ov"><div class="card"><pre id="inv"></pre><div id="invqr"></div>
- <div class="row noprint"><button id="sm" class="pri">SMS</button><button id="pr">Print</button><button id="cl">Close</button></div></div></div>
+<div class="ov" id="ov"><div class="card"><pre id="inv"></pre><div id="invqr"></div><div class="mu noprint" id="invby"></div>
+ <div class="row noprint"><button id="wa" class="pri">WhatsApp</button><button id="sm" class="pri">SMS</button><button id="pr">Print</button><button id="cl">Close</button></div></div></div>
 <div class="ov" id="dlg"><div class="card"><div id="dm" class="b"></div><input id="di" type="number" style="display:none;margin-top:8px"><div class="row"><button id="dno">Cancel</button><button id="dok" class="pri">OK</button></div></div></div>
 <div id="toast"></div>
 <script>
 const $=id=>document.getElementById(id),K='quickbill_v1';
-const FEATS={discount:'Discount option at billing',gst:'GST on bills & items',upi:'UPI QR payments',udhaar:'Udhaar (credit) & balances',stock:'Stock tracking',sms:'Send bill by SMS',lock:'PIN lock (ask for PIN when opening the app)'};
-const def=()=>({shop:'QuickBill',upi:'',users:[],f:{discount:true,gst:true,upi:true,udhaar:true,stock:true,sms:true,liquid:true,lock:true},items:[{id:1,name:'Sample item',price:100,gst:5,stock:50,code:'1001'}],bills:[],pay:[],n:1,carry:[]});
+const FEATS={discount:'Discount option at billing',gst:'GST on bills & items',upi:'UPI QR payments',udhaar:'Udhaar (credit) & balances',stock:'Stock tracking',sms:'Send bill by SMS',wa:'Send bill by WhatsApp',adv:'Advance money received (at billing)',due:'Show Due money',tot:'Show Total when sending bills',lock:'PIN lock (ask for PIN when opening the app)'};
+const def=()=>({shop:'QuickBill',upi:'',users:[],f:{discount:true,gst:true,upi:true,udhaar:true,stock:true,sms:true,wa:true,adv:true,due:true,tot:true,liquid:true,lock:true},items:[{id:1,name:'Sample item',price:100,gst:5,stock:50,code:'1001'}],bills:[],pay:[],n:1,carry:[]});
 let db=def();
 try{const s=JSON.parse(localStorage.getItem(K)||'null');if(s){db=Object.assign(def(),s);db.f=Object.assign(def().f,s.f)}}catch(e){}
 const save=()=>{try{localStorage.setItem(K,JSON.stringify(db))}catch(e){}try{QBSync.changed()}catch(e){}};
@@ -178,7 +180,7 @@ function boot(){if(db.users.length&&!db.f.lock)return enter(db.users.find(u=>u.r
  <label class="fl">Your name</label><input id="a2" placeholder="Owner name">
  <label class="fl">Create 4-digit PIN</label><input id="a3" class="pin" placeholder="••••" inputmode="numeric" type="password" maxlength="4">
  <label class="fl">Security password <span style="font-weight:400">(needed to change UPI ID)</span></label><input id="a5" type="password" placeholder="Min 4 characters">
- <label class="fl">UPI ID <span style="font-weight:400">(optional, for QR payments)</span></label><input id="a4" placeholder="shop@upi">
+ <label class="fl">UPI ID <span style="font-weight:700;color:var(--ac)">(Optional)</span></label><div class="mu" style="margin:-2px 0 6px">Adding a UPI ID is optional. You can skip it and add it later in Settings.</div><input id="a4" placeholder="Optional - shop@upi">
  <button class="pri big" id="ab">Create account &amp; start</button>
  <button class="big" id="cn2" style="margin-top:8px">Connect to an existing shop</button>`;
   $('cn2').onclick=()=>QBSync.connectScreen();$('ab').onclick=()=>{const n=$('a2').value.trim(),p=$('a3').value;if(!n||!/^\d{4}$/.test(p))return toast('Enter your name and a 4-digit PIN');if($('a5').value.length<4)return toast('Security password needs 4+ characters');
@@ -204,10 +206,10 @@ function applyF(){const f=db.f;document.body.classList.toggle('liquid',!!f.liqui
  $('gstrow').style.display=f.gst?'':'none';
  const modes=['Cash'].concat(f.upi?['UPI']:[],['Card'],f.udhaar?['Udhaar']:[]),cur=$('mode').value;
  $('mode').innerHTML=modes.map(m=>`<option>${m}</option>`).join('');if(modes.includes(cur))$('mode').value=cur;
- $('ig').style.display=f.gst?'':'none';$('is').style.display=f.stock?'':'none';
- const tabs=[['home','Home',1,'🏠'],['bill','Bill',1,'🧾'],['items','Items',owner(),'📦'],['cust','Udhaar',f.udhaar,'📒'],['rep','Reports',owner(),'📊']].filter(t=>t[2]);
+ $('advrow').style.display=f.adv?'':'none';if(!f.adv)$('adv').value=0;$('ig').style.display=f.gst?'':'none';$('is').style.display=f.stock?'':'none';
+ const tabs=[['home','Home',1,'🏠'],['bill','Bill',1,'🧾'],['items','Items',owner(),'📦'],['cust','Udhaar',(f.udhaar||f.adv),'📒'],['rep','Reports',owner(),'📊']].filter(t=>t[2]);
  if(!(tab==='set'&&owner())&&!tabs.some(t=>t[0]===tab))tab='home';
- $('gear').style.display=owner()?'':'none';const sv=[];if(f.sms)sv.push('SMS');const cs=$('sendvia').value;
+ $('gear').style.display=owner()?'':'none';const sv=[];if(f.wa)sv.push('WhatsApp');if(f.sms)sv.push('SMS');const cs=$('sendvia').value;
  $('sendvia').innerHTML=['Do not send'].concat(sv).map(m=>'<option>'+m+'</option>').join('');$('sendvia').value=(sv.includes(cs)||cs==='Do not send')?cs:(sv[0]||'Do not send');$('sl').style.display=sv.length?'':'none';
  $('nav').innerHTML='';tabs.forEach(t=>{const b=document.createElement('button');b.innerHTML='<i>'+t[3]+'</i>'+t[1];b.className=t[0]===tab?'on':'';b.onclick=()=>{tab=t[0];applyF();draw()};$('nav').append(b)});
  document.querySelectorAll('.tabs>section').forEach(s=>s.classList.toggle('on',s.id==='t-'+tab))}
@@ -247,20 +249,21 @@ function drawBill(){const q=$('q').value.trim().toLowerCase();$('res').innerHTML
   const wq=d.querySelector('.wq');if(wq)wq.onchange=()=>{const q=parseFloat(wq.value);if(q>0)l.qty=q;else cart.splice(i,1);drawBill()};
   d.querySelectorAll('button').forEach(b=>b.onclick=()=>{if(b.dataset.a==='x')cart.splice(i,1);else{l.qty+=b.dataset.a==='+'?1:-1;if(l.qty<1)cart.splice(i,1)}drawBill()});$('cart').append(d)});
  $('dval').style.display=$('dchk').checked?'':'none';
- const t=totals();$('gst').textContent=R(t.gst);$('tot').textContent=R(t.tot);drawQR()}
+ const t=totals();$('gst').textContent=R(t.gst);$('tot').textContent=R(t.tot);{const a=advNow(t.tot),dv=t.tot-a;$('duerow').style.display=(db.f.due&&t.tot>0&&(a>0||$('mode').value==='Udhaar'))?'':'none';$('duev').textContent=R(dv)}drawQR()}
+const advNow=tot=>db.f.adv?Math.min(Math.max(+$('adv').value||0,0),tot):0;
 let autoN=false,autoP=false;
 const dg=x=>(x||'').replace(/\D/g,'').slice(-10);
-function udm(){const m={},g=c=>m[c]=m[c]||{tot:0,paid:0};
- db.bills.forEach(b=>{if(b.mode==='Udhaar'&&!b.cleared)g(b.cust).tot+=b.total});
+function udm(){const m={},g=c=>m[c]=m[c]||{tot:0,paid:0,adv:0,bills:0};
+ db.bills.forEach(b=>{const d=dueOf(b);if(d>0.005&&b.cust&&!b.cleared){const o=g(b.cust);o.tot+=d;o.adv+=(b.adv||0);o.bills+=b.total}});
  (db.carry||[]).forEach(x=>{g(x.cust).tot+=x.amt});
  db.pay.forEach(p=>{if(!p.cleared&&m[p.cust])m[p.cust].paid+=p.amt});return m}
 const pend=c=>{const o=udm()[c];return o?o.tot-o.paid:0};
 const mk=d=>{const x=new Date(d);return x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')};
 const mlab=k=>{const a=k.split('-');return new Date(+a[0],a[1]-1,1).toLocaleDateString(undefined,{month:'long',year:'numeric'})};
-function delBills(list){const add={};list.forEach(b=>{if(b.mode==='Udhaar'&&!b.cleared)add[b.cust]=(add[b.cust]||0)+b.total});
+function delBills(list){const add={};list.forEach(b=>{{const d=dueOf(b);if(d>0.005&&b.cust&&!b.cleared)add[b.cust]=(add[b.cust]||0)+d}});
  db.carry=db.carry||[];Object.keys(add).forEach(c=>{const e=db.carry.find(x=>x.cust===c);if(e)e.amt+=add[c];else db.carry.push({cust:c,amt:add[c]})});
  const st=new Set(list);db.bills=db.bills.filter(b=>!st.has(b));save()}
-function clearCust(c){db.bills.forEach(b=>{if(b.mode==='Udhaar'&&b.cust===c)b.cleared=true});db.pay.forEach(p=>{if(p.cust===c)p.cleared=true});db.carry=(db.carry||[]).filter(x=>x.cust!==c);save()}
+function clearCust(c){db.bills.forEach(b=>{if(b.cust===c&&dueOf(b)>0.005)b.cleared=true});db.pay.forEach(p=>{if(p.cust===c)p.cleared=true});db.carry=(db.carry||[]).filter(x=>x.cust!==c);save()}
 function known(){const m={};db.bills.forEach(b=>{if(b.cust&&dg(b.phone).length===10)m[dg(b.phone)]=b.cust});return m}
 function drawKnown(){const m=known(),nm={};Object.keys(m).forEach(p=>nm[m[p]]=p);
  $('cnl').innerHTML=Object.keys(nm).map(n=>'<option value="'+esc(n)+'">'+nm[n]+'</option>').join('');
@@ -276,26 +279,31 @@ $('cn').oninput=()=>{autoN=false;const n=$('cn').value.trim().toLowerCase(),m=kn
  if(n&&hit.length===1&&(!$('cp').value||autoP)){$('cp').value=hit[0];autoP=true}
  else if(autoP){$('cp').value='';autoP=false}
  hint()};
-$('q').oninput=drawBill;$('disc').oninput=drawBill;$('dchk').onchange=drawBill;$('mode').onchange=drawBill;
+$('q').oninput=drawBill;$('disc').oninput=drawBill;$('adv').oninput=drawBill;$('dchk').onchange=drawBill;$('mode').onchange=drawBill;
 $('q').onkeydown=e=>{if(e.key!=='Enter')return;const v=$('q').value.trim().toLowerCase(),m=db.items.filter(i=>i.code===v||i.name.toLowerCase().includes(v));if(m.length===1)add(m[0])};
 $('save').onclick=(ev,force)=>{if(!cart.length)return alert('Add items first');
  const m=$('mode').value,cn=$('cn').value.trim();if(m==='Udhaar'&&!cn)return alert('Enter customer name for Udhaar');
+ {const tt=totals().tot,aa=advNow(tt);if(aa>0&&tt-aa>0.005&&!cn)return alert('Enter customer name to track the due amount')}
  if(db.f.stock&&!force){const sh=cart.find(l=>{const it=db.items.find(i=>i.id===l.id);return it&&it.stock<l.qty});if(sh)return ask(sh.name+' has low stock. Save bill anyway?',()=>$('save').onclick(null,true))}
- const t=totals(),bill={no:db.n++,date:Date.now(),cust:cn,phone:$('cp').value.trim(),lines:cart.map(l=>({...l})),disc:t.d,gst:t.gst,total:t.tot,mode:m,by:me.name};
+ const t=totals(),bill={no:db.n++,date:Date.now(),cust:cn,phone:$('cp').value.trim(),lines:cart.map(l=>({...l})),disc:t.d,gst:t.gst,total:t.tot,adv:advNow(t.tot),mode:m,by:me.name};
  if(db.f.stock)cart.forEach(l=>{const it=db.items.find(i=>i.id===l.id);if(it)it.stock=Math.round((it.stock-l.qty)*1000)/1000});
- db.bills.push(bill);save();cart=[];$('disc').value=0;$('dchk').checked=false;$('cn').value='';$('cp').value='';autoN=autoP=false;drawKnown();$('chint').textContent='';show(bill);{const via=$('sendvia').value;if(bill.phone&&via==='SMS')smsSend(bill)}drawBill()};
+ db.bills.push(bill);save();cart=[];$('disc').value=0;$('adv').value=0;$('dchk').checked=false;$('cn').value='';$('cp').value='';autoN=autoP=false;drawKnown();$('chint').textContent='';show(bill);{const via=$('sendvia').value;if(bill.phone&&via==='SMS')smsSend(bill);if(bill.phone&&via==='WhatsApp')waSend(bill)}drawBill()};
+function dueOf(b){return (b.adv>0||b.mode==='Udhaar')?Math.max(0,b.total-(b.adv||0)):0}
+function advLines(b,inv){let x='';if(db.f.adv&&b.adv>0)x+='\nAdvance received: '+(inv?R(b.adv):RS(b.adv));if(db.f.due&&dueOf(b)>0.005)x+='\nDue: '+(inv?R(dueOf(b)):RS(dueOf(b)));return x}
 function invText(b){const ln='-'.repeat(34);let s=db.shop+'\n'+new Date(b.date).toLocaleString()+'\nBill #'+b.no+(b.cust?'\nCustomer: '+b.cust:'')+'\n'+ln+'\n';
  b.lines.forEach(l=>s+=l.name+'\n  '+l.qty+(l.unit&&l.unit!=='pcs'?' '+U(l.unit):'')+' x '+l.price+' = '+R(l.qty*l.price)+'\n');
- return s+ln+'\n'+(b.disc?'Discount: -'+R(b.disc)+'\n':'')+(db.f.gst?'GST included: '+R(b.gst)+'\n':'')+'TOTAL: '+R(b.total)+'\nPaid by: '+b.mode+(b.mode==='Udhaar'?' (pending)':'')+'\n'+ln+'\nThank you! Visit again.'}
-function show(b){last=b;$('inv').textContent=invText(b);
+ return s+ln+'\n'+(b.disc?'Discount: -'+R(b.disc)+'\n':'')+(db.f.gst?'GST included: '+R(b.gst)+'\n':'')+'TOTAL: '+R(b.total)+advLines(b,true)+'\nPaid by: '+b.mode+(b.mode==='Udhaar'?' (pending)':'')+'\n'+ln+'\nThank you! Visit again.'}
+function show(b){last=b;$('inv').textContent=invText(b);$('invby').textContent=b.by?'Billed by: '+b.by:'';
  $('invqr').innerHTML=b.mode==='UPI'&&db.upi?qrHtml(upiUrl(b.total,'Bill '+b.no))+'<div class="b" style="text-align:center">Scan to pay '+R(b.total)+'</div>':'';
- $('sm').style.display=db.f.sms?'':'none';$('ov').classList.add('on')}
+ $('sm').style.display=db.f.sms?'':'none';$('wa').style.display=db.f.wa?'':'none';$('ov').classList.add('on')}
 $('cl').onclick=()=>$('ov').classList.remove('on');$('pr').onclick=()=>window.print();
 const RS=n=>'Rs.'+(Math.round(n*100)/100);
-function smsText(b){return db.shop+'\n'+new Date(b.date).toLocaleDateString()+'\n\n'+b.lines.map(l=>l.name+' x'+l.qty+(l.unit&&l.unit!=='pcs'?U(l.unit):'')).join(', ')+'\n\nTotal: '+RS(b.total)+(b.disc?' (disc '+RS(b.disc)+')':'')+'\nPaid: '+b.mode+(b.mode==='Udhaar'?' (pending)':'')+'\n\nThank you!\n\n\nBill no: '+b.no}
+function smsText(b){return db.shop+'\n'+new Date(b.date).toLocaleDateString()+'\n\n'+b.lines.map(l=>l.name+' x'+l.qty+(l.unit&&l.unit!=='pcs'?U(l.unit):'')).join(', ')+(db.f.tot?'\n\nTotal: '+RS(b.total)+(b.disc?' (disc '+RS(b.disc)+')':''):'')+advLines(b,false)+'\nPaid: '+b.mode+(b.mode==='Udhaar'?' (pending)':'')+'\n\nThank you!\n\n\nBill no: '+b.no}
 function smsSend(b){let p=(b.phone||'').replace(/\D/g,'').replace(/^0+/,'');p=p.length===10?'+91'+p:(p?'+'+p:'');
  window.open('sms:'+p+(/iPhone|iPad|iPod/.test(navigator.userAgent)?'&':'?')+'body='+encodeURIComponent(smsText(b)),'_blank')}
-$('sm').onclick=()=>smsSend(last);
+function waSend(b){let p=(b.phone||'').replace(/\D/g,'').replace(/^0+/,'');if(p.length===10)p='91'+p;
+ window.open('https://wa.me/'+p+'?text='+encodeURIComponent(smsText(b)),'_blank')}
+$('sm').onclick=()=>smsSend(last);$('wa').onclick=()=>waSend(last);
 $('gear').onclick=()=>{tab='set';applyF();draw()};
 /* ---------- items / udhaar / reports ---------- */
 function drawItems(){const q=$('isq').value.trim().toLowerCase(),L=db.items.filter(i=>!q||i.name.toLowerCase().includes(q)||(i.code||'').includes(q));
@@ -351,7 +359,7 @@ function drawCust(){const m=udm(),ow=owner();
  $('custs').innerHTML='<div class="row"><div class="b">Udhaar</div>'+(ow&&old.length?'<button class="s dng" id="clrold">Delete settled ('+old.length+')</button>':'')+'</div>'+(k.length?'':'<div class="mu">No udhaar yet.</div>');
  const co=$('clrold');if(co)co.onclick=()=>ask('Delete the udhaar records of '+old.length+' customer(s) who have paid everything? Your sales reports are not changed.',()=>{old.forEach(clearCust);toast('Old udhaar records deleted');draw()});
  k.forEach(c=>{const o=m[c],bal=Math.round((o.tot-o.paid)*100)/100,d=document.createElement('div');d.className='row';
-  d.innerHTML=`<div>${esc(c)}<div class="mu">Total ${R(o.tot)} · Received ${R(o.paid)}</div></div>`+(pe(c)?`<div class="s b low">${R(bal)} pending</div><button class="s pri" data-a="r">Received</button>`:'<div class="s b ok">✓ Received</div>')+(ow?'<button class="s" data-a="d" title="Delete record">🗑</button>':'');
+  d.innerHTML=`<div>${esc(c)}<div class="mu">Bills ${R(o.bills)}${o.adv>0?' · Advance '+R(o.adv):''}${(o.tot-(o.bills-o.adv))>0.005?' · Earlier '+R(o.tot-(o.bills-o.adv)):''} · Received later ${R(o.paid)}</div></div>`+(pe(c)?`<div class="s b low">${R(bal)} pending</div><button class="s pri" data-a="r">Received</button>`:'<div class="s b ok">✓ Received</div>')+(ow?'<button class="s" data-a="d" title="Delete record">🗑</button>':'');
   const rb=d.querySelector('[data-a=r]');if(rb)rb.onclick=()=>ask('Amount received from '+c+' (₹)',v=>{const a=parseFloat(v);if(!(a>0))return toast('Enter a valid amount');db.pay.push({cust:c,amt:Math.min(a,o.tot-o.paid),date:Date.now()});save();drawCust();toast('Payment recorded')},bal);
   const db_=d.querySelector('[data-a=d]');if(db_)db_.onclick=()=>ask('Delete the udhaar record of '+c+'?'+(pe(c)?' '+R(bal)+' is still pending and will be forgotten.':'')+' Sales reports are not changed.',()=>{clearCust(c);toast('Record deleted');draw()});
   $('custs').append(d)})}
@@ -363,20 +371,22 @@ function drawRep(){const nowK=mk(Date.now());if(!repM)repM=nowK;
  const keys=Object.keys(mon).sort().reverse();
  const mb=db.bills.filter(b=>mk(b.date)===repM).sort((a,b)=>b.date-a.date),ms=mb.reduce((s,b)=>s+b.total,0);
  const mby={},mtop={},ud={};
- mb.forEach(b=>{mby[b.mode]=(mby[b.mode]||0)+b.total;b.lines.forEach(l=>mtop[l.name]=(mtop[l.name]||0)+l.qty);if(b.mode==='Udhaar'){const u=ud[b.cust]=ud[b.cust]||{amt:0,n:0};u.amt+=b.total;u.n++}});
+ mb.forEach(b=>{mby[b.mode]=(mby[b.mode]||0)+b.total;b.lines.forEach(l=>mtop[l.name]=(mtop[l.name]||0)+l.qty);{const dd=dueOf(b);if(dd>0.005&&b.cust){const u=ud[b.cust]=ud[b.cust]||{amt:0,n:0};u.amt+=dd;u.n++}}});
  const udT=Object.values(ud).reduce((s,u)=>s+u.amt,0),rec=db.pay.filter(p=>mk(p.date)===repM).reduce((s,p)=>s+p.amt,0);
  const big='font-size:22px',mu=x=>'<div class="mu" style="margin-top:8px">'+x+'</div>',rw=(a,b)=>`<div class="row"><span>${a}</span><span class="r">${b}</span></div>`;
+ const wh=arr=>{const o={};arr.forEach(b=>{const k=b.by||'Unknown',x=o[k]=o[k]||{n:0,s:0};x.n++;x.s+=b.total});return Object.keys(o).map(k=>rw(esc(k)+' <span class="mu">('+o[k].n+' bill'+(o[k].n>1?'s':'')+')</span>',R(o[k].s))).join('')||'<div class="mu">–</div>'};
  $('rep').innerHTML=`<div class="card"><div class="b">Today</div><div class="row"><div>Sales<div class="b" style="${big}">${R(sum)}</div></div><div>Bills<div class="b" style="${big}">${t.length}</div></div></div>
  ${mu('By payment mode')}${Object.keys(by).map(k=>rw(k,R(by[k]))).join('')||'<div class="mu">No sales yet</div>'}
+ ${mu('Bills made by')}${wh(t)}
  ${mu('Top items')}${Object.entries(top).sort((a,b)=>b[1]-a[1]).slice(0,5).map(([n,q])=>rw(esc(n),q+' sold')).join('')||'<div class="mu">–</div>'}
  ${db.f.stock?`${mu('Low stock (≤5)')}${low.map(i=>`<div class="row low"><span>${esc(i.name)}</span><span class="r">${i.stock} left</span></div>`).join('')||'<div class="mu">All good</div>'}`:''}</div>
  <div class="card"><div class="b">Monthly report</div>
  <div class="row"><input type="month" id="rm" value="${repM}" max="${nowK}"></div>
  <div class="b" style="margin-top:6px">${mlab(repM)}</div>
  <div class="row"><div>Total sales<div class="b" style="${big}">${R(ms)}</div></div><div>Bills<div class="b" style="${big}">${mb.length}</div></div></div>
- ${db.f.udhaar?`<div class="row"><div>Udhaar given<div class="b low">${R(udT)}</div></div><div>Udhaar received<div class="b ok">${R(rec)}</div></div></div>`:''}
- ${mb.length?`${mu('By payment mode')}${Object.keys(mby).map(k=>rw(k,R(mby[k]))).join('')}`:'<div class="mu">No sales in this month.</div>'}
- ${db.f.udhaar&&Object.keys(ud).length?`${mu('Who took udhaar this month')}${Object.keys(ud).sort((a,b)=>ud[b].amt-ud[a].amt).map(c=>`<div class="row"><div>${esc(c)}<div class="mu">${ud[c].n} bill${ud[c].n>1?'s':''}${pend(c)>0.005?' · '+R(pend(c))+' pending now':' · all paid'}</div></div><div class="s b low r">${R(ud[c].amt)}</div></div>`).join('')}`:''}
+ ${(db.f.udhaar||db.f.adv)?`<div class="row"><div>Udhaar given<div class="b low">${R(udT)}</div></div><div>Udhaar received<div class="b ok">${R(rec)}</div></div></div>`:''}
+ ${mb.length?`${mu('By payment mode')}${Object.keys(mby).map(k=>rw(k,R(mby[k]))).join('')}${mu('Bills made by')}${wh(mb)}`:'<div class="mu">No sales in this month.</div>'}
+ ${(db.f.udhaar||db.f.adv)&&Object.keys(ud).length?`${mu('Who took udhaar this month')}${Object.keys(ud).sort((a,b)=>ud[b].amt-ud[a].amt).map(c=>`<div class="row"><div>${esc(c)}<div class="mu">${ud[c].n} bill${ud[c].n>1?'s':''}${pend(c)>0.005?' · '+R(pend(c))+' pending now':' · all paid'}</div></div><div class="s b low r">${R(ud[c].amt)}</div></div>`).join('')}`:''}
  ${mb.length?`${mu('Top items')}${Object.entries(mtop).sort((a,b)=>b[1]-a[1]).slice(0,8).map(([n,q])=>rw(esc(n),q+' sold')).join('')}`:''}</div>
  <div class="card"><div class="b">All months</div>${keys.length?keys.map(k=>`<div class="row mrow ${k===repM?'sel':''}" data-k="${k}"><span class="b">${mlab(k)}</span><span class="s mu">${mon[k].n} bill${mon[k].n>1?"s":""}</span><span class="r b">${R(mon[k].s)}</span></div>`).join(''):'<div class="mu">No bills yet.</div>'}</div>
  <div class="card"><div class="b">Bills in ${mlab(repM)}</div>${mb.length?'':'<div class="mu">No bills.</div>'}<div id="mbills"></div>
@@ -384,7 +394,7 @@ function drawRep(){const nowK=mk(Date.now());if(!repM)repM=nowK;
  $('rm').onchange=e=>{repM=e.target.value||nowK;drawRep()};
  document.querySelectorAll('#rep .mrow').forEach(r=>r.onclick=()=>{repM=r.dataset.k;drawRep()});
  mb.slice(0,100).forEach(b=>{const d=document.createElement('div');d.className='row';
-  d.innerHTML=`<div>${new Date(b.date).toLocaleDateString()} ${new Date(b.date).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}<div class="mu">Bill ${b.no}${b.cust?' · '+esc(b.cust):''} · ${b.mode}</div></div><div class="s b">${R(b.total)}</div><button class="s">View</button><button class="s">✕</button>`;
+  d.innerHTML=`<div>${new Date(b.date).toLocaleDateString()} ${new Date(b.date).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}<div class="mu">Bill ${b.no}${b.cust?' · '+esc(b.cust):''} · ${b.mode}${b.adv>0?' · Adv '+R(b.adv):''} · by ${esc(b.by||'-')}</div></div><div class="s b">${R(b.total)}</div><button class="s">View</button><button class="s">✕</button>`;
   const [v,x]=d.querySelectorAll('button');v.onclick=()=>show(b);
   x.onclick=()=>ask('Delete bill '+b.no+' ('+R(b.total)+')? Stock is not changed.',()=>{delBills([b]);toast('Bill deleted');draw()});$('mbills').append(d)});
  if(mb.length>100)$('mbills').insertAdjacentHTML('beforeend','<div class="mu">Showing newest 100 of '+mb.length+'.</div>');
@@ -412,7 +422,7 @@ $('imp').onclick=()=>$('file').click();
 $('file').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const s=JSON.parse(r.result);db=Object.assign(def(),s);db.f=Object.assign(def().f,s.f);save();me=db.users.find(u=>u.name===me.name)||db.users[0];applyF();draw();alert('Restored')}catch(x){alert('Invalid file')}};r.readAsText(f)};
 function drawHome(){const t=db.bills.filter(b=>sameDay(b.date));$('hi').textContent='Hello, '+me.name+' 👋';$('hstats').style.display=owner()?'':'none';
  $('hs').textContent=R(t.reduce((s,b)=>s+b.total,0));$('hb').textContent=t.length;
- const T=[['bill','🧾','New bill','teal',1],['items','📦','Items','blue',owner()],['cust','📒','Udhaar','amber',db.f.udhaar],['rep','📊','Reports','violet',owner()]].filter(x=>x[4]);
+ const T=[['bill','🧾','New bill','teal',1],['items','📦','Items','blue',owner()],['cust','📒','Udhaar','amber',(db.f.udhaar||db.f.adv)],['rep','📊','Reports','violet',owner()]].filter(x=>x[4]);
  $('tiles').innerHTML='';T.forEach(x=>{const b=document.createElement('button');b.dataset.c=x[3];b.innerHTML='<i>'+x[1]+'</i><span>'+x[2]+'</span>';b.onclick=()=>{tab=x[0];applyF();draw()};$('tiles').append(b)})}
 function draw(){drawKnown();$('shop').textContent=db.shop;$('who').textContent=me.name;$('uav').textContent=(me.name.trim()[0]||'?').toUpperCase();$('urole').textContent=me.role;drawHome();drawBill();if(owner()){drawItems();drawRep();drawSet()}drawCust()}
 /* ---------- cloud sync (one shop shared by several devices) ---------- */
