@@ -301,8 +301,19 @@ const RS=n=>'Rs.'+(Math.round(n*100)/100);
 function smsText(b){return db.shop+'\n'+new Date(b.date).toLocaleDateString()+'\n\n'+b.lines.map(l=>l.name+' x'+l.qty+(l.unit&&l.unit!=='pcs'?U(l.unit):'')).join(', ')+(db.f.tot?'\n\nTotal: '+RS(b.total)+(b.disc?' (disc '+RS(b.disc)+')':''):'')+advLines(b,false)+'\nPaid: '+b.mode+(b.mode==='Udhaar'?' (pending)':'')+'\n\nThank you!\n\n\nBill no: '+b.no}
 function smsSend(b){let p=(b.phone||'').replace(/\D/g,'').replace(/^0+/,'');p=p.length===10?'+91'+p:(p?'+'+p:'');
  window.open('sms:'+p+(/iPhone|iPad|iPod/.test(navigator.userAgent)?'&':'?')+'body='+encodeURIComponent(smsText(b)),'_blank')}
+function waText(b){const ln='━━━━━━━━━━━━━━',d=new Date(b.date),dt=d.toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})+', '+d.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'}).toUpperCase();
+ let t='🧾 *'+db.shop+'*\n'+ln+'\n📅 '+dt+'\n🔖 Bill No: *#'+b.no+'*'+(b.cust?'\n👤 Customer: '+b.cust:'')+'\n'+ln+'\n*Items*\n';
+ b.lines.forEach((l,i)=>{t+=(i+1)+'. '+l.name+'\n    '+l.qty+(l.unit&&l.unit!=='pcs'?' '+U(l.unit):'')+' x '+R(l.price)+' = '+R(l.qty*l.price)+'\n'});
+ t+=ln+'\n';
+ if(b.disc>0)t+='Discount: -'+R(b.disc)+'\n';
+ if(db.f.gst&&b.gst>0)t+='GST included: '+R(b.gst)+'\n';
+ if(db.f.tot)t+='*Total: '+R(b.total)+'*\n';
+ if(db.f.adv&&b.adv>0)t+='✅ Advance received: '+R(b.adv)+'\n';
+ if(db.f.due&&dueOf(b)>0.005)t+='⏳ *Due: '+R(dueOf(b))+'*\n';
+ t+=ln+'\n💳 Paid by: '+b.mode+(b.mode==='Udhaar'?' (pending)':'')+'\n\n🙏 _Thank you!_';
+ return t}
 function waSend(b){let p=(b.phone||'').replace(/\D/g,'').replace(/^0+/,'');if(p.length===10)p='91'+p;
- window.open('https://wa.me/'+p+'?text='+encodeURIComponent(smsText(b)),'_blank')}
+ window.open('https://wa.me/'+p+'?text='+encodeURIComponent(waText(b)),'_blank')}
 $('sm').onclick=()=>smsSend(last);$('wa').onclick=()=>waSend(last);
 $('gear').onclick=()=>{tab='set';applyF();draw()};
 /* ---------- items / udhaar / reports ---------- */
