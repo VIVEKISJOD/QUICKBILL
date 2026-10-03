@@ -133,7 +133,7 @@ body.liquid .tiles button{box-shadow:0 10px 24px #0003,inset 0 1px 0 #ffffff66}
   <div class="row"><input id="pf" placeholder="Items containing, e.g. dal"><select id="pu"><option value="">All items</option><option value="kg">Kg items only</option><option value="l">Litre items only</option><option value="pcs">Piece items only</option></select></div>
   <div class="row"><input id="pp" type="number" step="any" placeholder="₹ change per unit, e.g. 10 or -5"></div>
   <div class="row"><button id="pgo" class="pri">Apply</button><button id="pun">Undo last change</button></div></div>
- <div class="card"><input id="isq" placeholder="Search inventory…"></div><div class="card" id="items"></div></section>
+ <div class="card"><input id="isq" name="inventory-search" autocomplete="off" autocorrect="off" placeholder="Search inventory…"></div><div class="card" id="items"></div></section>
 <section id="t-cust"><div class="card" id="custs"></div></section>
 <section id="t-rep"><div id="rep"></div></section>
 <section id="t-set">
@@ -307,7 +307,7 @@ $('sm').onclick=()=>smsSend(last);$('wa').onclick=()=>waSend(last);
 $('gear').onclick=()=>{tab='set';applyF();draw()};
 /* ---------- items / udhaar / reports ---------- */
 function drawItems(){const q=$('isq').value.trim().toLowerCase(),L=db.items.filter(i=>!q||i.name.toLowerCase().includes(q)||(i.code||'').includes(q));
- $('items').innerHTML='<div class="b">Inventory ('+db.items.length+')</div>'+(L.length>100?'<div class="mu">Showing first 100 of '+L.length+' - search to narrow</div>':'');
+ $('items').innerHTML='<div class="b">Inventory ('+db.items.length+')</div>'+(L.length>100?'<div class="mu">Showing first 100 of '+L.length+' - search to narrow</div>':'')+(!L.length&&db.items.length?'<div class="mu low">No items match "'+esc($('isq').value)+'". Clear the search box above to see all '+db.items.length+' items.</div>':'');
  L.slice(0,100).forEach(i=>{const d=document.createElement('div');d.className='row';
   d.innerHTML=`<div>${esc(i.name)}<div class="mu">${R(i.price)}${i.unit&&i.unit!=='pcs'?'/'+U(i.unit):''}${db.f.gst?' · GST '+i.gst+'%':''}${i.code?' · #'+esc(i.code):''}</div></div>${db.f.stock?`<div class="s ${i.stock<=5?'low b':''}">Stock ${i.stock}${i.unit&&i.unit!=='pcs'?' '+U(i.unit):''}</div>`:''}<button class="s">Edit</button><button class="s">✕</button>`;
   const [e,x]=d.querySelectorAll('button');
