@@ -103,6 +103,7 @@ body.liquid .tiles button{box-shadow:0 10px 24px #0003,inset 0 1px 0 #ffffff66}
  <div class="card"><div id="cart"></div>
   <div id="discbox"><label class="t"><input type="checkbox" id="dchk"> Apply discount</label>
   <div class="row" id="dval" style="display:none"><span class="s mu">Discount ₹</span><input id="disc" type="number" min="0" value="0"></div></div>
+  <div id="taxbox" style="display:none"><label class="t" id="sclab"><input type="checkbox" id="scchk" checked> <span id="sctxt">Service charge</span></label><div id="taxrows"></div></div>
   <div class="row" id="gstrow"><span class="mu">GST included</span><span class="r mu" id="gst">₹0</span></div>
   <div class="row"><span class="b">Total</span><span class="r b" id="tot" style="font-size:20px">₹0</span></div>
   <div class="row" id="advrow"><span class="mu">Advance received ₹</span><input id="adv" type="number" min="0" step="any" value="0" style="max-width:120px;text-align:right"></div>
@@ -144,6 +145,14 @@ body.liquid .tiles button{box-shadow:0 10px 24px #0003,inset 0 1px 0 #ffffff66}
  <div class="card" id="syncbox"></div>
  <div class="card"><div class="b">Appearance</div><label class="t"><input type="checkbox" id="liq"> Liquid glass look</label></div>
  <div class="card"><div class="b">Features</div><div id="feat"></div></div>
+ <div class="card" id="taxset" style="display:none"><div class="b">Restaurant tax</div>
+  <div class="mu" style="margin:2px 0 8px">Most standalone restaurants charge 5% GST (no input credit). Restaurants inside hotels with room rent above ₹7,500 charge 18%. Please confirm your rate with your CA. While this is on, it replaces the per-item GST on bills.</div>
+  <div class="row"><span class="mu">GST %</span><input id="txr" type="number" min="0" max="100" step="any" style="max-width:110px;text-align:right"></div>
+  <div class="row"><span class="mu">Service charge % (0 = none)</span><input id="txs" type="number" min="0" max="100" step="any" style="max-width:110px;text-align:right"></div>
+  <label class="t"><input type="checkbox" id="txo"> Charge GST on service charge too</label>
+  <label class="t"><input type="checkbox" id="txp"> Show CGST + SGST separately</label>
+  <label class="t"><input type="checkbox" id="txi"> Item prices already include GST</label>
+  <label class="t"><input type="checkbox" id="txd"> Round off total to nearest rupee</label></div>
  <div class="card"><div class="b">Accounts</div><div id="users"></div>
   <div class="row"><input id="un" placeholder="Name"><input id="up" placeholder="4-digit PIN" inputmode="numeric" type="password" maxlength="4"></div>
   <div class="row"><select id="ur"><option value="cashier">Cashier</option><option value="owner">Owner</option></select><button id="addu" class="pri">Add account</button></div></div>
@@ -157,14 +166,16 @@ body.liquid .tiles button{box-shadow:0 10px 24px #0003,inset 0 1px 0 #ffffff66}
 <div id="toast"></div>
 <script>
 const $=id=>document.getElementById(id),K='quickbill_v1';
-const FEATS={discount:'Discount option at billing',gst:'GST on bills & items',upi:'UPI QR payments',udhaar:'Udhaar (credit) & balances',stock:'Stock tracking',sms:'Send bill by SMS',wa:'Send bill by WhatsApp',adv:'Advance money received (at billing)',due:'Show Due money',tot:'Show Total when sending bills',lock:'PIN lock (ask for PIN when opening the app)'};
-const def=()=>({shop:'QuickBill',upi:'',users:[],f:{discount:true,gst:true,upi:true,udhaar:true,stock:true,sms:true,wa:true,adv:true,due:true,tot:true,liquid:true,lock:true},items:[{id:1,name:'Sample item',price:100,gst:5,stock:50,code:'1001'}],bills:[],pay:[],n:1,carry:[]});
+const FEATS={discount:'Discount option at billing',gst:'GST on bills & items',upi:'UPI QR payments',udhaar:'Udhaar (credit) & balances',stock:'Stock tracking',sms:'Send bill by SMS',wa:'Send bill by WhatsApp',adv:'Advance money received (at billing)',due:'Show Due money',tot:'Show Total when sending bills',lock:'PIN lock (ask for PIN when opening the app)',tax:'Restaurant tax: GST + service charge on whole bill'};
+const def=()=>({shop:'QuickBill',upi:'',users:[],f:{discount:true,gst:true,upi:true,udhaar:true,stock:true,sms:true,wa:true,adv:true,due:true,tot:true,liquid:true,lock:true,tax:false},items:[{id:1,name:'Sample item',price:100,gst:5,stock:50,code:'1001'}],bills:[],pay:[],n:1,carry:[]});
 let db=def();
 try{const s=JSON.parse(localStorage.getItem(K)||'null');if(s){db=Object.assign(def(),s);db.f=Object.assign(def().f,s.f)}}catch(e){}
 const save=()=>{try{localStorage.setItem(K,JSON.stringify(db))}catch(e){}try{QBSync.changed()}catch(e){}};
 const h=s=>{let x=5381;for(const c of String(s))x=((x<<5)+x+c.charCodeAt(0))|0;return String(x)};
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const R=n=>'₹'+(Math.round(n*100)/100).toFixed(2).replace(/\.00$/,'');
+const TX=()=>Object.assign({r:5,sc:0,onsc:true,sp:true,ix:false,ro:true},db.tax||{});
+const fr=n=>String(+(+n).toFixed(2));
 const sameDay=d=>new Date(d).toDateString()===new Date().toDateString();
 let me=null,cart=[],last=null,tab='bill';
 document.body.classList.toggle('liquid',!!db.f.liquid);
@@ -203,7 +214,7 @@ const owner=()=>me&&me.role==='owner';
 /* ---------- features / nav ---------- */
 function applyF(){const f=db.f;document.body.classList.toggle('liquid',!!f.liquid);$('out').style.display=f.lock?'':'none';$('out2').parentNode.style.display=f.lock?'':'none';
  $('discbox').style.display=f.discount?'':'none';if(!f.discount){$('dchk').checked=false}
- $('gstrow').style.display=f.gst?'':'none';
+ $('gstrow').style.display=(f.gst&&!f.tax)?'':'none';$('taxbox').style.display=f.tax?'':'none';
  const modes=['Cash'].concat(f.upi?['UPI']:[],['Card'],f.udhaar?['Udhaar']:[]),cur=$('mode').value;
  $('mode').innerHTML=modes.map(m=>`<option>${m}</option>`).join('');if(modes.includes(cur))$('mode').value=cur;
  $('advrow').style.display=f.adv?'':'none';if(!f.adv)$('adv').value=0;$('ig').style.display=f.gst?'':'none';$('is').style.display=f.stock?'':'none';
@@ -215,7 +226,16 @@ function applyF(){const f=db.f;document.body.classList.toggle('liquid',!!f.liqui
  document.querySelectorAll('.tabs>section').forEach(s=>s.classList.toggle('on',s.id==='t-'+tab))}
 /* ---------- billing ---------- */
 function totals(){const sub=cart.reduce((s,l)=>s+l.price*l.qty,0),d=db.f.discount&&$('dchk').checked?Math.min(+$('disc').value||0,sub):0,k=sub?(sub-d)/sub:0;
- const gst=db.f.gst?cart.reduce((s,l)=>{const t=l.price*l.qty*k;return s+t-t/(1+l.gst/100)},0):0;return{sub,d,tot:sub-d,gst}}
+ const gst=db.f.gst?cart.reduce((s,l)=>{const t=l.price*l.qty*k;return s+t-t/(1+l.gst/100)},0):0;if(db.f.tax){const x=TX(),g=x.r/100,r2=v=>Math.round(v*100)/100,net=r2(sub-d),base=x.ix?net/(1+g):net,gi=x.ix?r2(net-base):0,on=x.sc>0&&$('scchk').checked,sc=on?r2(base*x.sc/100):0,ga=r2(x.ix?(x.onsc?sc*g:0):(net+(x.onsc?sc:0))*g),raw=r2(net+sc+ga),tot=x.ro?Math.round(raw):raw;return{sub,d,tx:1,sc,scr:on?x.sc:0,rt:x.r,sp:x.sp,ix:x.ix,gi,ga,gst:r2(gi+ga),ro:r2(tot-raw),tot}}
+ return{sub,d,tot:sub-d,gst}}
+function taxRows(b){if(!b.tx)return[];const rows=[],h2=fr(b.rt/2);if(b.sc>0)rows.push(['Service charge ('+fr(b.scr)+'%)',R(b.sc)]);
+ const add=(a,suf)=>{if(!(a>0))return;if(b.sp)rows.push(['CGST '+h2+'%'+suf,R(a/2)],['SGST '+h2+'%'+suf,R(a/2)]);else rows.push(['GST '+fr(b.rt)+'%'+suf,R(a)])};
+ add(b.gi,b.ix?' (incl.)':'');add(b.ga,b.ix?' on service':'');
+ if(Math.abs(b.ro||0)>=0.005)rows.push(['Round off',(b.ro<0?'-':'+')+R(Math.abs(b.ro))]);return rows}
+function txUI(t){const x=TX(),on=!!db.f.tax;$('sclab').style.display=(on&&x.sc>0)?'':'none';$('sctxt').textContent='Service charge ('+fr(x.sc)+'%)';
+ const rows=(on&&t.sub>0)?[['Subtotal',R(t.sub)]].concat(t.d>0?[['Discount','-'+R(t.d)]]:[],taxRows(t)):[];
+ $('taxrows').innerHTML=rows.map(r=>'<div class="row"><span class="mu">'+r[0]+'</span><span class="r mu">'+r[1]+'</span></div>').join('')}
+function smsTx(b){if(!b.tx)return'';const a=[];if(b.sc>0)a.push('service charge '+RS(b.sc));if(b.gst>0)a.push('GST '+RS(b.gst));return a.length?' (incl. '+a.join(' + ')+')':''}
 function upiUrl(amt,note){return 'upi://pay?pa='+encodeURIComponent(db.upi)+'&pn='+encodeURIComponent(db.shop)+'&am='+amt.toFixed(2)+'&cu=INR&tn='+encodeURIComponent(note)}
 function qrHtml(url){try{const q=qrcode(0,'M');q.addData(url);q.make();return '<div class="qr">'+q.createSvgTag({cellSize:4,margin:0,scalable:true})+'</div>'}catch(e){return '<div class="mu">QR could not load (check internet once)</div>'}}
 function drawQR(){const bx=$('qrbox'),t=totals();
@@ -245,11 +265,11 @@ function drawBill(){const q=$('q').value.trim().toLowerCase();$('res').innerHTML
  $('cart').innerHTML=cart.length?'':'<div class="mu">Cart is empty. Tap an item above.</div>';
  cart.forEach((l,i)=>{const d=document.createElement('div');d.className='row';
   const wt=l.unit&&l.unit!=='pcs';
-  d.innerHTML=`<div>${esc(l.name)}<div class="mu">${R(l.price)}${wt?'/'+U(l.unit):''}${db.f.gst?' · GST '+l.gst+'%':''}</div></div>`+(wt?`<div class="s row"><input class="wq" type="number" step="any" min="0" value="${l.qty}" style="width:76px"><span class="mu">${U(l.unit)}</span><button data-a="x">✕</button></div>`:`<div class="s row"><button data-a="-">−</button><b>${l.qty}</b><button data-a="+">+</button></div>`)+`<div class="s b r" style="min-width:64px">${R(l.price*l.qty)}</div>`;
+  d.innerHTML=`<div>${esc(l.name)}<div class="mu">${R(l.price)}${wt?'/'+U(l.unit):''}${db.f.gst&&!db.f.tax?' · GST '+l.gst+'%':''}</div></div>`+(wt?`<div class="s row"><input class="wq" type="number" step="any" min="0" value="${l.qty}" style="width:76px"><span class="mu">${U(l.unit)}</span><button data-a="x">✕</button></div>`:`<div class="s row"><button data-a="-">−</button><b>${l.qty}</b><button data-a="+">+</button></div>`)+`<div class="s b r" style="min-width:64px">${R(l.price*l.qty)}</div>`;
   const wq=d.querySelector('.wq');if(wq)wq.onchange=()=>{const q=parseFloat(wq.value);if(q>0)l.qty=q;else cart.splice(i,1);drawBill()};
   d.querySelectorAll('button').forEach(b=>b.onclick=()=>{if(b.dataset.a==='x')cart.splice(i,1);else{l.qty+=b.dataset.a==='+'?1:-1;if(l.qty<1)cart.splice(i,1)}drawBill()});$('cart').append(d)});
  $('dval').style.display=$('dchk').checked?'':'none';
- const t=totals();$('gst').textContent=R(t.gst);$('tot').textContent=R(t.tot);{const a=advNow(t.tot),dv=t.tot-a;$('duerow').style.display=(db.f.due&&t.tot>0&&(a>0||$('mode').value==='Udhaar'))?'':'none';$('duev').textContent=R(dv)}drawQR()}
+ const t=totals();txUI(t);$('gst').textContent=R(t.gst);$('tot').textContent=R(t.tot);{const a=advNow(t.tot),dv=t.tot-a;$('duerow').style.display=(db.f.due&&t.tot>0&&(a>0||$('mode').value==='Udhaar'))?'':'none';$('duev').textContent=R(dv)}drawQR()}
 const advNow=tot=>db.f.adv?Math.min(Math.max(+$('adv').value||0,0),tot):0;
 let autoN=false,autoP=false;
 const dg=x=>(x||'').replace(/\D/g,'').slice(-10);
@@ -285,28 +305,30 @@ $('save').onclick=(ev,force)=>{if(!cart.length)return alert('Add items first');
  const m=$('mode').value,cn=$('cn').value.trim();if(m==='Udhaar'&&!cn)return alert('Enter customer name for Udhaar');
  {const tt=totals().tot,aa=advNow(tt);if(aa>0&&tt-aa>0.005&&!cn)return alert('Enter customer name to track the due amount')}
  if(db.f.stock&&!force){const sh=cart.find(l=>{const it=db.items.find(i=>i.id===l.id);return it&&it.stock<l.qty});if(sh)return ask(sh.name+' has low stock. Save bill anyway?',()=>$('save').onclick(null,true))}
- const t=totals(),bill={no:db.n++,date:Date.now(),cust:cn,phone:$('cp').value.trim(),lines:cart.map(l=>({...l})),disc:t.d,gst:t.gst,total:t.tot,adv:advNow(t.tot),mode:m,by:me.name};
+ const t=totals(),bill={no:db.n++,date:Date.now(),cust:cn,phone:$('cp').value.trim(),lines:cart.map(l=>({...l})),disc:t.d,gst:t.gst,total:t.tot,...(t.tx?{tx:1,sub:t.sub,sc:t.sc,scr:t.scr,rt:t.rt,sp:t.sp,ix:t.ix,gi:t.gi,ga:t.ga,ro:t.ro}:{}),adv:advNow(t.tot),mode:m,by:me.name};
  if(db.f.stock)cart.forEach(l=>{const it=db.items.find(i=>i.id===l.id);if(it)it.stock=Math.round((it.stock-l.qty)*1000)/1000});
- db.bills.push(bill);save();cart=[];$('disc').value=0;$('adv').value=0;$('dchk').checked=false;$('cn').value='';$('cp').value='';autoN=autoP=false;drawKnown();$('chint').textContent='';show(bill);{const via=$('sendvia').value;if(bill.phone&&via==='SMS')smsSend(bill);if(bill.phone&&via==='WhatsApp')waSend(bill)}drawBill()};
+ db.bills.push(bill);save();cart=[];$('disc').value=0;$('adv').value=0;$('dchk').checked=false;$('scchk').checked=true;$('cn').value='';$('cp').value='';autoN=autoP=false;drawKnown();$('chint').textContent='';show(bill);{const via=$('sendvia').value;if(bill.phone&&via==='SMS')smsSend(bill);if(bill.phone&&via==='WhatsApp')waSend(bill)}drawBill()};
 function dueOf(b){return (b.adv>0||b.mode==='Udhaar')?Math.max(0,b.total-(b.adv||0)):0}
 function advLines(b,inv){let x='';if(db.f.adv&&b.adv>0)x+='\nAdvance received: '+(inv?R(b.adv):RS(b.adv));if(db.f.due&&dueOf(b)>0.005)x+='\nDue: '+(inv?R(dueOf(b)):RS(dueOf(b)));return x}
 function invText(b){const ln='-'.repeat(34);let s=db.shop+'\n'+new Date(b.date).toLocaleString()+'\nBill #'+b.no+(b.cust?'\nCustomer: '+b.cust:'')+'\n'+ln+'\n';
  b.lines.forEach(l=>s+=l.name+'\n  '+l.qty+(l.unit&&l.unit!=='pcs'?' '+U(l.unit):'')+' x '+l.price+' = '+R(l.qty*l.price)+'\n');
- return s+ln+'\n'+(b.disc?'Discount: -'+R(b.disc)+'\n':'')+(db.f.gst?'GST included: '+R(b.gst)+'\n':'')+'TOTAL: '+R(b.total)+advLines(b,true)+'\nPaid by: '+b.mode+(b.mode==='Udhaar'?' (pending)':'')+'\n'+ln+'\nThank you! Visit again.'}
+ return s+ln+'\n'+(b.tx?'Subtotal: '+R(b.sub)+'\n':'')+(b.disc?'Discount: -'+R(b.disc)+'\n':'')+(b.tx?taxRows(b).map(r=>r[0]+': '+r[1]+'\n').join(''):(db.f.gst?'GST included: '+R(b.gst)+'\n':''))+'TOTAL: '+R(b.total)+advLines(b,true)+'\nPaid by: '+b.mode+(b.mode==='Udhaar'?' (pending)':'')+'\n'+ln+'\nThank you! Visit again.'}
 function show(b){last=b;$('inv').textContent=invText(b);$('invby').textContent=b.by?'Billed by: '+b.by:'';
  $('invqr').innerHTML=b.mode==='UPI'&&db.upi?qrHtml(upiUrl(b.total,'Bill '+b.no))+'<div class="b" style="text-align:center">Scan to pay '+R(b.total)+'</div>':'';
  $('sm').style.display=db.f.sms?'':'none';$('wa').style.display=db.f.wa?'':'none';$('ov').classList.add('on')}
 $('cl').onclick=()=>$('ov').classList.remove('on');$('pr').onclick=()=>window.print();
 const RS=n=>'Rs.'+(Math.round(n*100)/100);
-function smsText(b){return db.shop+'\n'+new Date(b.date).toLocaleDateString()+'\n\n'+b.lines.map(l=>l.name+' x'+l.qty+(l.unit&&l.unit!=='pcs'?U(l.unit):'')).join(', ')+(db.f.tot?'\n\nTotal: '+RS(b.total)+(b.disc?' (disc '+RS(b.disc)+')':''):'')+advLines(b,false)+'\nPaid: '+b.mode+(b.mode==='Udhaar'?' (pending)':'')+'\n\nThank you!\n\n\nBill no: '+b.no}
+function smsText(b){return db.shop+'\n'+new Date(b.date).toLocaleDateString()+'\n\n'+b.lines.map(l=>l.name+' x'+l.qty+(l.unit&&l.unit!=='pcs'?U(l.unit):'')).join(', ')+(db.f.tot?'\n\nTotal: '+RS(b.total)+(b.disc?' (disc '+RS(b.disc)+')':'')+smsTx(b):'')+advLines(b,false)+'\nPaid: '+b.mode+(b.mode==='Udhaar'?' (pending)':'')+'\n\nThank you!\n\n\nBill no: '+b.no}
 function smsSend(b){let p=(b.phone||'').replace(/\D/g,'').replace(/^0+/,'');p=p.length===10?'+91'+p:(p?'+'+p:'');
  window.open('sms:'+p+(/iPhone|iPad|iPod/.test(navigator.userAgent)?'&':'?')+'body='+encodeURIComponent(smsText(b)),'_blank')}
 function waText(b){const ln='━━━━━━━━━━━━━━',d=new Date(b.date),dt=d.toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})+', '+d.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'}).toUpperCase();
  let t='🧾 *'+db.shop+'*\n'+ln+'\n📅 '+dt+'\n🔖 Bill No: *#'+b.no+'*'+(b.cust?'\n👤 Customer: '+b.cust:'')+'\n'+ln+'\n*Items*\n';
  b.lines.forEach((l,i)=>{t+=(i+1)+'. '+l.name+'\n    '+l.qty+(l.unit&&l.unit!=='pcs'?' '+U(l.unit):'')+' x '+R(l.price)+' = '+R(l.qty*l.price)+'\n'});
  t+=ln+'\n';
+ if(b.tx)t+='Subtotal: '+R(b.sub)+'\n';
  if(b.disc>0)t+='Discount: -'+R(b.disc)+'\n';
- if(db.f.gst&&b.gst>0)t+='GST included: '+R(b.gst)+'\n';
+ if(b.tx)taxRows(b).forEach(r=>t+=r[0]+': '+r[1]+'\n');
+ else if(db.f.gst&&b.gst>0)t+='GST included: '+R(b.gst)+'\n';
  if(db.f.tot)t+='*Total: '+R(b.total)+'*\n';
  if(db.f.adv&&b.adv>0)t+='✅ Advance received: '+R(b.adv)+'\n';
  if(db.f.due&&dueOf(b)>0.005)t+='⏳ *Due: '+R(dueOf(b))+'*\n';
@@ -413,8 +435,11 @@ function drawRep(){const nowK=mk(Date.now());if(!repM)repM=nowK;
   const go=()=>{delBills(mb);toast(mlab(repM)+' history deleted');draw()};
   if(db.secpw)ask('Enter the security password to delete',v=>{if(h(v)!==db.secpw)return toast('Wrong password, nothing deleted');go()},'','password');else go()})}
 /* ---------- settings ---------- */
+$('scchk').onchange=()=>drawBill();
+function saveTx(){const n=v=>Math.min(100,Math.max(0,+v||0));db.tax={r:n($('txr').value),sc:n($('txs').value),onsc:$('txo').checked,sp:$('txp').checked,ix:$('txi').checked,ro:$('txd').checked};save();draw()}
+['txr','txs','txo','txp','txi','txd'].forEach(i=>$(i).onchange=saveTx);
 $('liq').onchange=e=>{db.f.liquid=e.target.checked;save();applyF()};
-function drawSet(){QBSync.box();$('liq').checked=!!db.f.liquid;$('sn').value=db.shop;$('su').value=db.upi;
+function drawSet(){QBSync.box();$('liq').checked=!!db.f.liquid;$('taxset').style.display=db.f.tax?'':'none';{const x=TX();$('txr').value=x.r;$('txs').value=x.sc;$('txo').checked=x.onsc;$('txp').checked=x.sp;$('txi').checked=x.ix;$('txd').checked=x.ro}$('sn').value=db.shop;$('su').value=db.upi;
  $('feat').innerHTML='';Object.keys(FEATS).forEach(k=>{const l=document.createElement('label');l.className='t';l.innerHTML=`<input type="checkbox" ${db.f[k]?'checked':''}> ${FEATS[k]}`;
   l.firstChild.onchange=e=>{db.f[k]=e.target.checked;save();applyF();draw()};$('feat').append(l)});
  $('users').innerHTML='';db.users.forEach((u,i)=>{const d=document.createElement('div');d.className='row';d.innerHTML=`<div>${esc(u.name)} <span class="mu">${u.role}</span></div>${u===me?'<span class="s mu">you</span>':'<button class="s">Remove</button>'}`;
