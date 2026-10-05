@@ -101,6 +101,7 @@ body.liquid .tiles button{box-shadow:0 10px 24px #0003,inset 0 1px 0 #ffffff66}
 <div class="tabs">
 <section id="t-home"><div class="card"><div class="b" id="hi"></div><div class="row" id="hstats"><div>Today's sales<div class="b" id="hs" style="font-size:22px"></div></div><div>Bills<div class="b" id="hb" style="font-size:22px"></div></div></div></div><div class="tiles" id="tiles"></div><button id="out" class="big" style="margin-top:16px;display:none">Logout</button></section>
 <section id="t-bill">
+ <div class="card" id="editbar" style="display:none"><div class="row"><div><b>✏️ Editing bill #<span id="editno"></span></b><div class="mu">Change items, customer or payment, then tap Save changes. Nothing is changed until you save.</div></div><button class="s" id="editx">Cancel edit</button></div></div>
  <div class="card"><input id="q" placeholder="Type item name to find it, or scan barcode" autocomplete="off"><div class="mu" id="qhint" style="margin-top:8px"></div><div class="chips" id="res"></div></div>
  <div class="card"><div id="cart"></div>
   <div id="discbox"><label class="t"><input type="checkbox" id="dchk"> Apply discount</label>
@@ -156,7 +157,7 @@ body.liquid .tiles button{box-shadow:0 10px 24px #0003,inset 0 1px 0 #ffffff66}
  <div class="card"><button id="out2" class="big dng" style="margin:0">Logout</button></div></details>
 <details class="grp"><summary>💾 Data &amp; sync</summary>
 <div class="card" id="syncbox"></div>
- <div class="card"><div class="b">Reset</div><div class="row"><button id="rsu" class="dng">Reset all Udhaar</button></div><div class="row"><button id="rsd" class="dng">Reset this phone &amp; disconnect</button></div><div class="mu">Both ask for your security password. Take a backup first if you may need your data.</div></div>
+ <div class="card"><div class="b">Reset</div><div class="row"><button id="rsu" class="dng">Reset all Udhaar</button></div><div class="row"><button id="rsa" class="dng">Reset everything &amp; stay connected</button></div><div class="row"><button id="rsd" class="dng">Reset this phone &amp; disconnect</button></div><div class="mu">Each of these asks for your security password. Take a backup first if you may need your data.</div></div>
 <div class="card"><div class="row"><button id="exp">Export backup</button><button id="imp">Restore backup</button></div><input id="file" type="file" accept=".json" hidden></div>
 </details>
 </section></div>
@@ -164,11 +165,12 @@ body.liquid .tiles button{box-shadow:0 10px 24px #0003,inset 0 1px 0 #ffffff66}
 <div class="ov" id="ov"><div class="card"><pre id="inv"></pre><div id="invqr"></div><div class="mu noprint" id="invby"></div>
  <div class="row noprint"><button id="pok" class="pri" style="display:none">✓ Payment received</button><button id="wa" class="pri">WhatsApp</button><button id="sm" class="pri">SMS</button><button id="pr">Print</button><button id="cl">Close</button></div></div></div>
 <div class="ov" id="dlg"><div class="card"><div id="dm" class="b"></div><input id="di" type="number" style="display:none;margin-top:8px"><div class="row"><button id="dno">Cancel</button><button id="dok" class="pri">OK</button></div></div></div>
+<div class="ov" id="pmo"><div class="card"><div class="b" id="pmt"></div><div id="pmb"></div><div class="row" style="margin-top:10px"><button id="pmx">Cancel</button><button id="pms" class="pri">Save</button></div></div></div>
 <div id="toast"></div>
 <script>
 const $=id=>document.getElementById(id),K='quickbill_v1';
-const FEATS={discount:'Discount option at billing',gst:'GST on bills & items',upi:'UPI QR payments',udhaar:'Udhaar (credit) & balances',stock:'Stock tracking',sms:'Send bill by SMS',wa:'Send bill by WhatsApp',adv:'Advance money received (at billing)',due:'Show Due money',tot:'Show Total when sending bills',lock:'PIN lock (ask for PIN when opening the app)'};
-const def=()=>({shop:'QuickBill',upi:'',users:[],f:{discount:true,gst:true,upi:true,udhaar:true,stock:true,sms:true,wa:true,adv:true,due:true,tot:true,liquid:true,lock:true},items:[{id:1,name:'Sample item',price:100,gst:5,stock:50,code:'1001'}],bills:[],pay:[],n:1,carry:[]});
+const FEATS={discount:'Discount option at billing',gst:'GST on bills & items',upi:'UPI QR payments',udhaar:'Udhaar (credit) & balances',stock:'Stock tracking',sms:'Send bill by SMS',wa:'Send bill by WhatsApp',adv:'Advance money received (at billing)',due:'Show Due money',tot:'Show Total when sending bills',lock:'PIN lock (ask for PIN when opening the app)',log:'Activity log (record who did what)'};
+const def=()=>({shop:'QuickBill',upi:'',users:[],f:{discount:true,gst:true,upi:true,udhaar:true,stock:true,sms:true,wa:true,adv:true,due:true,tot:true,liquid:true,lock:true,log:true},items:[{id:1,name:'Sample item',price:100,gst:5,stock:50,code:'1001'}],bills:[],pay:[],n:1,carry:[],log:[]});
 let db=def();
 try{const s=JSON.parse(localStorage.getItem(K)||'null');if(s){db=Object.assign(def(),s);db.f=Object.assign(def().f,s.f)}}catch(e){}
 const save=()=>{try{localStorage.setItem(K,JSON.stringify(db))}catch(e){}try{QBSync.changed()}catch(e){}};
@@ -243,7 +245,7 @@ function applyF(){const f=db.f;document.body.classList.toggle('liquid',!!f.liqui
  const modes=['Cash'].concat(f.upi?['UPI']:[],['Card'],f.udhaar?['Udhaar']:[]),cur=$('mode').value;
  $('mode').innerHTML=modes.map(m=>`<option>${m}</option>`).join('');if(modes.includes(cur))$('mode').value=cur;
  $('advrow').style.display=f.adv?'':'none';if(!f.adv)$('adv').value=0;$('ig').style.display=f.gst?'':'none';$('is').style.display=f.stock?'':'none';
- const tabs=[['home','Home',1,'🏠'],['bill','Bill',1,'🧾'],['items','Items',owner(),'📦'],['cust','Udhaar',(f.udhaar||f.adv),'📒'],['rep','Reports',owner(),'📊']].filter(t=>t[2]);
+ const tabs=[['home','Home',1,'🏠'],['bill','Bill',1,'🧾'],['items','Items',can('items'),'📦'],['cust','Udhaar',(f.udhaar||f.adv),'📒'],['rep','Reports',can('reports'),'📊']].filter(t=>t[2]);
  if(!(tab==='set'&&owner())&&!tabs.some(t=>t[0]===tab))tab='home';
  $('gear').style.display=owner()?'':'none';const sv=[];if(f.wa)sv.push('WhatsApp');if(f.sms)sv.push('SMS');const cs=$('sendvia').value;
  $('sendvia').innerHTML=['Do not send'].concat(sv).map(m=>'<option>'+m+'</option>').join('');$('sendvia').value=(sv.includes(cs)||cs==='Do not send')?cs:(sv[0]||'Do not send');$('sl').style.display=sv.length?'':'none';
@@ -491,18 +493,18 @@ $('addu').onclick=()=>{const n=$('un').value.trim(),p=$('up').value;if(!n||!/^\d
 $('exp').onclick=()=>{try{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(db)],{type:'application/json'}));a.download='quickbill-backup.json';a.click()}catch(e){alert('Export not available here')}};
 $('imp').onclick=()=>$('file').click();
 $('file').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const s=JSON.parse(r.result);db=Object.assign(def(),s);db.f=Object.assign(def().f,s.f);save();me=db.users.find(u=>u.name===me.name)||db.users[0];applyF();draw();alert('Restored')}catch(x){alert('Invalid file')}};r.readAsText(f)};
-function drawHome(){const t=db.bills.filter(b=>sameDay(b.date));$('hi').textContent='Hello, '+me.name+' 👋';$('hstats').style.display=owner()?'':'none';
+function drawHome(){const t=db.bills.filter(b=>sameDay(b.date));$('hi').textContent='Hello, '+me.name+' 👋';$('hstats').style.display=can('reports')?'':'none';
  $('hs').textContent=R(t.reduce((s,b)=>s+b.total,0));$('hb').textContent=t.length;
- const T=[['bill','🧾','New bill','teal',1],['items','📦','Items','blue',owner()],['cust','📒','Udhaar','amber',(db.f.udhaar||db.f.adv)],['rep','📊','Reports','violet',owner()]].filter(x=>x[4]);
+ const T=[['bill','🧾','New bill','teal',1],['items','📦','Items','blue',can('items')],['cust','📒','Udhaar','amber',(db.f.udhaar||db.f.adv)],['rep','📊','Reports','violet',can('reports')]].filter(x=>x[4]);
  $('tiles').innerHTML='';T.forEach(x=>{const b=document.createElement('button');b.dataset.c=x[3];b.innerHTML='<i>'+x[1]+'</i><span>'+x[2]+'</span>';b.onclick=()=>{tab=x[0];applyF();draw()};$('tiles').append(b)})}
-function draw(){drawKnown();$('shop').textContent=db.shop;$('who').textContent=me.name;$('uav').textContent=(me.name.trim()[0]||'?').toUpperCase();$('urole').textContent=me.role;drawHome();drawBill();if(owner()){drawItems();drawRep();drawSet()}drawCust()}
+function draw(){drawKnown();$('shop').textContent=db.shop;$('who').textContent=me.name;$('uav').textContent=(me.name.trim()[0]||'?').toUpperCase();$('urole').textContent=me.role;drawHome();drawBill();if(can('items'))drawItems();if(can('reports'))drawRep();if(owner())drawSet();drawCust()}
 /* ---------- cloud sync (one shop shared by several devices) ---------- */
 const QBSync=(()=>{
 const SYNC_URL='https://quickbillggs-default-rtdb.firebaseio.com';/* paste your Firebase Realtime Database URL here, e.g. https://quickbill-xxxx-default-rtdb.firebaseio.com */
 const CK='quickbill_sync',BK='quickbill_sync_base';
 const ser=o=>JSON.stringify(o,(k,v)=>v&&typeof v==='object'&&!Array.isArray(v)?Object.keys(v).sort().reduce((a,x)=>(a[x]=v[x],a),{}):v);
 const eq=(a,b)=>ser(a)===ser(b),cp=o=>o===undefined?undefined:JSON.parse(JSON.stringify(o));
-const KEYS={items:i=>i.id,users:u=>u.name,carry:c=>c.cust,bills:b=>b.no+'|'+b.date,pay:p=>p.cust+'|'+p.date+'|'+p.amt};
+const KEYS={items:i=>i.id,users:u=>u.name,carry:c=>c.cust,log:e=>e.i,bills:b=>b.no+'|'+b.date,pay:p=>p.cust+'|'+p.date+'|'+p.amt};
 const DELTA={stock:1,amt:1};
 /* ---- 3-way merge: base (last synced) / local / remote ---- */
 function mObj(b,l,r){const o={...r};
@@ -701,6 +703,118 @@ function init(){
 return{disconnect,init,changed,box,connectScreen,create,join,_t:{merge:mergeChunk,split,assemble,get cfg(){return cfg}}}
 })();
 QBSync.init();
+/* ---------- NEW: staff permissions, edit / cancel bills, activity log, full reset ---------- */
+const can=p=>owner()||!!(me&&me.perm&&me.perm[p]);
+let editing=null,quiet=false,logN=30;
+/* --- activity log --- */
+function logA(a,by,force){if(!force&&!db.f.log)return;db.log=db.log||[];
+ db.log.push({i:Date.now().toString(36)+Math.random().toString(36).slice(2,6),t:Date.now(),by:by||(me?me.name:'-'),a});
+ if(db.log.length>200)db.log.splice(0,db.log.length-200)}
+function mkSnap(){return{db,
+ bills:new Map(db.bills.map(b=>[b.no+'|'+b.date,[b.no,b.total,b.mode,!!b.paidOk,!!b.cleared,b.cust||'']])),
+ pay:new Map(db.pay.map(p=>[p.cust+'|'+p.date,[p.cust,p.amt,!!p.void,!!p.cleared]])),
+ carry:new Map((db.carry||[]).map(c=>[c.cust,c.amt])),
+ items:new Map(db.items.map(i=>[i.id,[i.name,i.price,i.stock]])),
+ users:new Map(db.users.map(u=>[u.name,JSON.stringify(u.perm||{})])),
+ f:{...db.f},upi:db.upi,shop:db.shop,pw:db.secpw||''}}
+let snap=mkSnap();
+function diffLog(){const s=snap,out=[],cur=new Map(db.bills.map(b=>[b.no+'|'+b.date,b])),add=[],rem=[],cc=new Set();
+ cur.forEach((b,k)=>{const o=s.bills.get(k);if(!o)add.push(b);else{if(!o[3]&&b.paidOk)out.push('Marked payment received for bill #'+b.no);if(!o[4]&&b.cleared&&b.cust)cc.add(b.cust)}});
+ s.bills.forEach((o,k)=>{if(!cur.has(k))rem.push(o)});
+ if(add.length>3)out.push('Saved '+add.length+' bills');else add.forEach(b=>out.push('Saved bill #'+b.no+' · '+R(b.total)+' · '+b.mode+(b.cust?' · '+b.cust:'')));
+ if(rem.length>3)out.push('Deleted '+rem.length+' bills');else rem.forEach(o=>out.push('Deleted bill #'+o[0]+' · '+R(o[1])));
+ db.pay.forEach(p=>{const o=s.pay.get(p.cust+'|'+p.date);
+  if(!o){if(!p.void)out.push('Udhaar received '+R(p.amt)+' from '+p.cust)}
+  else{if(!o[3]&&p.cleared)cc.add(p.cust);
+   if(!o[2]&&p.void)out.push('Deleted udhaar payment of '+R(o[1])+' from '+p.cust);
+   else if(!p.void&&o[1]!==p.amt)out.push('Corrected udhaar payment of '+p.cust+': '+R(o[1])+' → '+R(p.amt))}});
+ s.carry.forEach((a,c)=>{if(!(db.carry||[]).some(x=>x.cust===c))cc.add(c)});
+ if(cc.size)out.push(cc.size<=3?'Cleared udhaar record of '+[...cc].join(', '):'Cleared udhaar records of '+cc.size+' customers');
+ const im=[],ids=new Set(db.items.map(i=>i.id)),bc=add.length||rem.length;
+ db.items.forEach(i=>{const o=s.items.get(i.id);
+  if(!o)im.push('Added item '+i.name+' · '+R(i.price));
+  else{if(o[0]!==i.name)im.push('Renamed item '+o[0]+' → '+i.name);if(o[1]!==i.price)im.push('Price of '+i.name+': '+R(o[1])+' → '+R(i.price));if(!bc&&o[2]!==i.stock)im.push('Stock of '+i.name+': '+o[2]+' → '+i.stock)}});
+ s.items.forEach((o,id)=>{if(!ids.has(id))im.push('Deleted item '+o[0])});
+ if(im.length>4)out.push('Changed '+im.length+' items (import or price change)');else im.forEach(x=>out.push(x));
+ db.users.forEach(u=>{const o=s.users.get(u.name);if(o===undefined)out.push('Added account '+u.name+' ('+u.role+')');else if(o!==JSON.stringify(u.perm||{}))out.push('Changed permissions of '+u.name)});
+ s.users.forEach((o,n)=>{if(!db.users.some(u=>u.name===n))out.push('Removed account '+n)});
+ Object.keys(db.f).forEach(k=>{if(!!db.f[k]!==!!s.f[k])out.push((db.f[k]?'Turned ON: ':'Turned OFF: ')+(k==='liquid'?'Liquid glass look':FEATS[k]||k))});
+ if(db.upi!==s.upi)out.push('Changed UPI ID');if(db.shop!==s.shop)out.push('Changed shop name');if((db.secpw||'')!==s.pw)out.push('Changed security password');
+ return out}
+{const ch=QBSync.changed;QBSync.changed=function(){
+ try{if(quiet)quiet=false;
+  else if(me){let n=0;
+   if(db!==snap.db){if(db.f.log){logA('Restored a backup');n++}}
+   else if(db.f.log||snap.f.log){diffLog().forEach(a=>{logA(a,undefined,true);n++})}
+   if(n)localStorage.setItem(K,JSON.stringify(db))}
+ }catch(e){}
+ snap=mkSnap();return ch.apply(this,arguments)}}
+setInterval(()=>{snap=mkSnap()},2000);
+{const cp0=checkPin;checkPin=function(){const b=me;cp0();if(me&&me!==b){logA('Logged in');quiet=true;save()}}}
+{const lo0=logout;logout=function(){if(me){logA('Logged out');quiet=true;save()}editing=null;setEditUI();lo0()};$('out').onclick=logout;$('out2').onclick=logout}
+function logCard(){const c=document.createElement('div');c.className='card';
+ const L=(db.log||[]).slice().sort((a,b)=>b.t-a.t);
+ c.innerHTML='<div class="b">Activity log</div><div class="mu">'+(db.f.log?'Recording who did what. You can switch this off in Settings → Billing &amp; sending bills.':'<span class="low">The activity log is OFF - nothing new is being recorded.</span>')+'</div>'+(L.length?'':'<div class="mu" style="margin-top:8px">Nothing recorded yet.</div>');
+ L.slice(0,logN).forEach(e=>{const d=new Date(e.t),r=document.createElement('div');r.className='row';
+  r.innerHTML='<div>'+esc(e.a)+'<div class="mu">'+esc(e.by)+' · '+d.toLocaleDateString()+' '+d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})+'</div></div>';c.append(r)});
+ if(L.length>logN){const m=document.createElement('button');m.style.cssText='width:100%;margin-top:8px';m.textContent='Show more ('+(L.length-logN)+' older)';m.onclick=()=>{logN+=30;drawRep()};c.append(m)}
+ if(L.length){const x=document.createElement('button');x.className='dng';x.style.cssText='width:100%;margin-top:8px';x.textContent='Clear activity log';
+  x.onclick=()=>gate(()=>ask('Clear the whole activity log? This cannot be undone.',()=>{db.log=[];logA('Cleared the activity log');quiet=true;save();toast('Log cleared');drawRep()}));c.append(x)}
+ return c}
+/* --- edit / cancel saved bills --- */
+function setEditUI(){$('editbar').style.display=editing?'':'none';$('editno').textContent=editing?editing.no:'';$('save').textContent=editing?'Save changes':'Save bill'}
+function clearForm(){cart=[];$('disc').value=0;$('adv').value=0;$('dchk').checked=false;$('cn').value='';$('cp').value='';autoN=autoP=false;$('chint').textContent=''}
+function startEdit(b){if(!can('cancel'))return toast('You do not have permission to edit bills');
+ editing=b;cart=b.lines.map(l=>({...l}));tab='bill';applyF();
+ $('cn').value=b.cust||'';$('cp').value=b.phone||'';autoN=autoP=false;
+ $('dchk').checked=!!(b.disc>0&&db.f.discount);$('disc').value=b.disc||0;$('adv').value=b.adv||0;
+ if([...$('mode').options].some(o=>o.value===b.mode))$('mode').value=b.mode;
+ setEditUI();draw();hint();scrollTo(0,0);toast('Editing bill #'+b.no)}
+$('editx').onclick=()=>{editing=null;clearForm();setEditUI();drawBill();toast('Edit cancelled')};
+function saveEdit(force){
+ const ob=db.bills.find(x=>x===editing)||db.bills.find(x=>editing&&x.no===editing.no&&x.date===editing.date);
+ if(!ob){editing=null;setEditUI();return toast('That bill no longer exists')}
+ if(!cart.length)return alert('Add items first');
+ const m=$('mode').value,cn=$('cn').value.trim();if(m==='Udhaar'&&!cn)return alert('Enter customer name for Udhaar');
+ {const tt=totals().tot,aa=advNow(tt);if(aa>0&&tt-aa>0.005&&!cn)return alert('Enter customer name to track the due amount')}
+ if(db.f.stock&&!force){const sh=cart.find(l=>{const it=db.items.find(i=>i.id===l.id),o=ob.lines.find(x=>x.id===l.id);return it&&it.stock+(o?o.qty:0)<l.qty});if(sh)return ask(sh.name+' has low stock. Save changes anyway?',()=>saveEdit(true))}
+ const t=totals(),was=ob.total;
+ if(db.f.stock){ob.lines.forEach(l=>{const it=db.items.find(i=>i.id===l.id);if(it)it.stock=Math.round((it.stock+l.qty)*1000)/1000});
+  cart.forEach(l=>{const it=db.items.find(i=>i.id===l.id);if(it)it.stock=Math.round((it.stock-l.qty)*1000)/1000})}
+ Object.assign(ob,{cust:cn,phone:$('cp').value.trim(),lines:cart.map(l=>({...l})),disc:t.d,gst:t.gst,total:t.tot,adv:advNow(t.tot),mode:m,edited:Date.now(),editedBy:me.name});
+ logA('Edited bill #'+ob.no+' · '+R(was)+' → '+R(ob.total));
+ editing=null;clearForm();setEditUI();quiet=true;save();drawKnown();show(ob);draw();toast('Bill #'+ob.no+' updated')}
+{const sv0=$('save').onclick;$('save').onclick=function(ev,force){if(!editing)return sv0.call(this,ev,force);saveEdit(false)}}
+function cancelBill(b){if(!can('cancel'))return toast('You do not have permission to cancel bills');
+ ask('Cancel bill '+b.no+' ('+R(b.total)+')? It is removed from sales and its items go back into stock. This cannot be undone.',()=>{
+  if(db.f.stock)b.lines.forEach(l=>{const it=db.items.find(i=>i.id===l.id);if(it)it.stock=Math.round((it.stock+l.qty)*1000)/1000});
+  db.bills=db.bills.filter(x=>x!==b);if(editing===b){editing=null;clearForm();setEditUI()}
+  logA('Cancelled bill #'+b.no+' · '+R(b.total)+(b.cust?' · '+b.cust:''));quiet=true;save();toast('Bill cancelled');draw()})}
+function repExtras(){const mb=db.bills.filter(b=>mk(b.date)===repM).sort((a,b)=>b.date-a.date).slice(0,100);
+ [...document.querySelectorAll('#mbills>.row')].forEach((r,i)=>{const b=mb[i];if(!b)return;
+  if(b.edited){const m=r.querySelector('.mu');if(m)m.textContent+=' · edited by '+(b.editedBy||'-')}
+  if(!owner()){const bs=r.querySelectorAll('button');if(bs.length>1)bs[bs.length-1].remove()}
+  if(can('cancel')){const w=document.createElement('div');w.className='row';w.style.cssText='justify-content:flex-end;margin:-2px 0 10px';
+   w.innerHTML='<button class="s">✏️ Edit bill</button><button class="s dng">Cancel bill</button>';
+   const[e,c]=w.querySelectorAll('button');e.onclick=()=>startEdit(b);c.onclick=()=>cancelBill(b);r.after(w)}});
+ if(!owner()){const dm=$('dmon');if(dm){if(dm.nextElementSibling)dm.nextElementSibling.remove();dm.remove()}}}
+{const r0=drawRep;drawRep=function(){r0();repExtras();if(owner())$('rep').append(logCard())}}
+/* --- staff permissions --- */
+const PERMS=[['items','Items tab (add / edit items, change prices)'],['reports','Reports (sales and the bills list)'],['cancel','Edit and cancel saved bills (also turns on Reports)']];
+function openPerm(u){$('pmt').textContent='Permissions for '+u.name;
+ $('pmb').innerHTML=PERMS.map(p=>'<label class="t"><input type="checkbox" data-k="'+p[0]+'" '+(u.perm&&u.perm[p[0]]?'checked':'')+'> '+p[1]+'</label>').join('')+'<div class="mu" style="margin-top:8px">Everything else this account can do stays the same.</div>';
+ $('pmo').classList.add('on');$('pmx').onclick=()=>$('pmo').classList.remove('on');
+ $('pms').onclick=()=>{const o={};$('pmb').querySelectorAll('input').forEach(i=>o[i.dataset.k]=i.checked);if(o.cancel)o.reports=true;u.perm=o;save();$('pmo').classList.remove('on');drawSet();toast('Permissions saved')}}
+{const d0=drawSet;drawSet=function(){d0();const rows=$('users').children;
+ db.users.forEach((u,i)=>{const r=rows[i];if(!r||u.role==='owner'||u===me)return;
+  const on=PERMS.filter(p=>u.perm&&u.perm[p[0]]).map(p=>p[1].split(' (')[0]);
+  if(on.length)r.firstElementChild.insertAdjacentHTML('beforeend','<div class="mu">Can: '+on.join(', ')+'</div>');
+  const b=document.createElement('button');b.className='s';b.textContent='Permissions';b.onclick=()=>openPerm(u);r.insertBefore(b,r.querySelector('button'))})}}
+/* --- reset everything but stay connected --- */
+$('rsa').onclick=()=>gate(()=>{const on=!!QBSync._t.cfg;
+ ask('Erase ALL bills, items and Udhaar'+(on?' on this phone AND on every connected phone':' on this phone')+'? Accounts, PINs, shop name, UPI ID and settings are kept'+(on?', and this phone stays connected (bill numbers keep counting)':'')+'. This cannot be undone. Take an Export backup first if you may need your data.',()=>{
+  db.items=[];db.bills=[];db.pay=[];db.carry=[];db.lastPrices=[];if(!on)db.n=1;
+  editing=null;clearForm();setEditUI();logA('Reset everything (bills, items, udhaar)');quiet=true;save();toast('Everything reset');draw()})});
 let sn=null;try{sn=sessionStorage.getItem('qb_me')}catch(e){}
 const su=db.users.find(u=>u.name===sn);su?enter(su):boot();
 if('serviceWorker' in navigator&&location.protocol.indexOf('http')===0){try{navigator.serviceWorker.register('sw.js').catch(()=>{})}catch(e){}}
