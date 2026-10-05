@@ -18,6 +18,8 @@ html{scroll-padding-top:env(safe-area-inset-top,0px)}
 *{box-sizing:border-box}
 body{margin:0 auto;background:var(--bg);color:var(--tx);font:15px system-ui,-apple-system,Segoe UI,Roboto,sans-serif;max-width:720px;padding:10px 10px 100px}
 h1{font-size:18px;margin:0}
+.cr{flex-wrap:wrap;gap:6px}.cr>div:first-child{flex:1 1 100%;min-width:0}.cr .s{white-space:nowrap}
+.grp{margin-bottom:10px}.grp>summary{font-weight:700;font-size:17px;padding:12px 4px;cursor:pointer}.grp[open]>summary{margin-bottom:6px}
 .card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:10px;margin-bottom:10px}
 input,select,button{font:inherit;color:var(--tx);background:var(--in,var(--card));border:1px solid var(--bd);border-radius:10px;padding:10px;width:100%}
 input[type=checkbox]{width:auto}
@@ -103,7 +105,6 @@ body.liquid .tiles button{box-shadow:0 10px 24px #0003,inset 0 1px 0 #ffffff66}
  <div class="card"><div id="cart"></div>
   <div id="discbox"><label class="t"><input type="checkbox" id="dchk"> Apply discount</label>
   <div class="row" id="dval" style="display:none"><span class="s mu">Discount ₹</span><input id="disc" type="number" min="0" value="0"></div></div>
-  <div id="taxbox" style="display:none"><label class="t" id="sclab"><input type="checkbox" id="scchk" checked> <span id="sctxt">Service charge</span></label><div id="taxrows"></div></div>
   <div class="row" id="gstrow"><span class="mu">GST included</span><span class="r mu" id="gst">₹0</span></div>
   <div class="row"><span class="b">Total</span><span class="r b" id="tot" style="font-size:20px">₹0</span></div>
   <div class="row" id="advrow"><span class="mu">Advance received ₹</span><input id="adv" type="number" min="0" step="any" value="0" style="max-width:120px;text-align:right"></div>
@@ -138,44 +139,42 @@ body.liquid .tiles button{box-shadow:0 10px 24px #0003,inset 0 1px 0 #ffffff66}
 <section id="t-cust"><div class="card" id="custs"></div></section>
 <section id="t-rep"><div id="rep"></div></section>
 <section id="t-set">
+<details class="grp" open><summary>🏪 Shop</summary>
  <div class="card"><div class="b">Shop</div>
   <div class="row"><input id="sn" placeholder="Shop name"></div>
   <div class="row"><input id="su" placeholder="UPI ID (e.g. shop@upi)"><button id="ssn" class="s">Save</button></div>
-  <div class="row"><button id="cpw">Change security password</button></div></div>
- <div class="card" id="syncbox"></div>
+  <div class="row"><button id="cpw">Change security password</button></div>
+  <div class="row"><span class="mu">Language</span><select id="lsel2"><option value="en">English</option><option value="hi">हिन्दी</option><option value="hg">Hinglish</option></select></div></div>
  <div class="card"><div class="b">Appearance</div><label class="t"><input type="checkbox" id="liq"> Liquid glass look</label></div>
- <div class="card"><div class="b">Features</div><div id="feat"></div></div>
- <div class="card" id="taxset" style="display:none"><div class="b">Restaurant tax</div>
-  <div class="mu" style="margin:2px 0 8px">Most standalone restaurants charge 5% GST (no input credit). Restaurants inside hotels with room rent above ₹7,500 charge 18%. Please confirm your rate with your CA. While this is on, it replaces the per-item GST on bills.</div>
-  <div class="row"><span class="mu">GST %</span><input id="txr" type="number" min="0" max="100" step="any" style="max-width:110px;text-align:right"></div>
-  <div class="row"><span class="mu">Service charge % (0 = none)</span><input id="txs" type="number" min="0" max="100" step="any" style="max-width:110px;text-align:right"></div>
-  <label class="t"><input type="checkbox" id="txo"> Charge GST on service charge too</label>
-  <label class="t"><input type="checkbox" id="txp"> Show CGST + SGST separately</label>
-  <label class="t"><input type="checkbox" id="txi"> Item prices already include GST</label>
-  <label class="t"><input type="checkbox" id="txd"> Round off total to nearest rupee</label></div>
- <div class="card"><div class="b">Accounts</div><div id="users"></div>
+ </details>
+<details class="grp"><summary>🧾 Billing &amp; sending bills</summary>
+<div class="card"><div class="b">Switch features on or off</div><div id="feat"></div></div></details>
+ <details class="grp"><summary>👥 Staff &amp; security</summary>
+<div class="card"><div class="b">Accounts</div><div id="users"></div>
   <div class="row"><input id="un" placeholder="Name"><input id="up" placeholder="4-digit PIN" inputmode="numeric" type="password" maxlength="4"></div>
   <div class="row"><select id="ur"><option value="cashier">Cashier</option><option value="owner">Owner</option></select><button id="addu" class="pri">Add account</button></div></div>
- <div class="card"><button id="out2" class="big dng" style="margin:0">Logout</button></div>
- <div class="card"><div class="row"><button id="exp">Export backup</button><button id="imp">Restore backup</button></div><input id="file" type="file" accept=".json" hidden></div>
+ <div class="card"><button id="out2" class="big dng" style="margin:0">Logout</button></div></details>
+<details class="grp"><summary>💾 Data &amp; sync</summary>
+<div class="card" id="syncbox"></div>
+ <div class="card"><div class="b">Reset</div><div class="row"><button id="rsu" class="dng">Reset all Udhaar</button></div><div class="row"><button id="rsd" class="dng">Reset this phone &amp; disconnect</button></div><div class="mu">Both ask for your security password. Take a backup first if you may need your data.</div></div>
+<div class="card"><div class="row"><button id="exp">Export backup</button><button id="imp">Restore backup</button></div><input id="file" type="file" accept=".json" hidden></div>
+</details>
 </section></div>
 <nav id="nav"></nav></div>
 <div class="ov" id="ov"><div class="card"><pre id="inv"></pre><div id="invqr"></div><div class="mu noprint" id="invby"></div>
- <div class="row noprint"><button id="wa" class="pri">WhatsApp</button><button id="sm" class="pri">SMS</button><button id="pr">Print</button><button id="cl">Close</button></div></div></div>
+ <div class="row noprint"><button id="pok" class="pri" style="display:none">✓ Payment received</button><button id="wa" class="pri">WhatsApp</button><button id="sm" class="pri">SMS</button><button id="pr">Print</button><button id="cl">Close</button></div></div></div>
 <div class="ov" id="dlg"><div class="card"><div id="dm" class="b"></div><input id="di" type="number" style="display:none;margin-top:8px"><div class="row"><button id="dno">Cancel</button><button id="dok" class="pri">OK</button></div></div></div>
 <div id="toast"></div>
 <script>
 const $=id=>document.getElementById(id),K='quickbill_v1';
-const FEATS={discount:'Discount option at billing',gst:'GST on bills & items',upi:'UPI QR payments',udhaar:'Udhaar (credit) & balances',stock:'Stock tracking',sms:'Send bill by SMS',wa:'Send bill by WhatsApp',adv:'Advance money received (at billing)',due:'Show Due money',tot:'Show Total when sending bills',lock:'PIN lock (ask for PIN when opening the app)',tax:'Restaurant tax: GST + service charge on whole bill'};
-const def=()=>({shop:'QuickBill',upi:'',users:[],f:{discount:true,gst:true,upi:true,udhaar:true,stock:true,sms:true,wa:true,adv:true,due:true,tot:true,liquid:true,lock:true,tax:false},items:[{id:1,name:'Sample item',price:100,gst:5,stock:50,code:'1001'}],bills:[],pay:[],n:1,carry:[]});
+const FEATS={discount:'Discount option at billing',gst:'GST on bills & items',upi:'UPI QR payments',udhaar:'Udhaar (credit) & balances',stock:'Stock tracking',sms:'Send bill by SMS',wa:'Send bill by WhatsApp',adv:'Advance money received (at billing)',due:'Show Due money',tot:'Show Total when sending bills',lock:'PIN lock (ask for PIN when opening the app)'};
+const def=()=>({shop:'QuickBill',upi:'',users:[],f:{discount:true,gst:true,upi:true,udhaar:true,stock:true,sms:true,wa:true,adv:true,due:true,tot:true,liquid:true,lock:true},items:[{id:1,name:'Sample item',price:100,gst:5,stock:50,code:'1001'}],bills:[],pay:[],n:1,carry:[]});
 let db=def();
 try{const s=JSON.parse(localStorage.getItem(K)||'null');if(s){db=Object.assign(def(),s);db.f=Object.assign(def().f,s.f)}}catch(e){}
 const save=()=>{try{localStorage.setItem(K,JSON.stringify(db))}catch(e){}try{QBSync.changed()}catch(e){}};
 const h=s=>{let x=5381;for(const c of String(s))x=((x<<5)+x+c.charCodeAt(0))|0;return String(x)};
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const R=n=>'₹'+(Math.round(n*100)/100).toFixed(2).replace(/\.00$/,'');
-const TX=()=>Object.assign({r:5,sc:0,onsc:true,sp:true,ix:false,ro:true},db.tax||{});
-const fr=n=>String(+(+n).toFixed(2));
 const sameDay=d=>new Date(d).toDateString()===new Date().toDateString();
 let me=null,cart=[],last=null,tab='bill';
 document.body.classList.toggle('liquid',!!db.f.liquid);
@@ -207,6 +206,32 @@ function checkPin(){const hh=h(pv),u=db.users.filter(x=>x.pin===hh).sort((a,b)=>
  if(u){pv='';return enter(u)}
  if(pv.length>=4){pv='';drawDots();toast('Wrong PIN');const A=$('authBody');A.classList.remove('shake');void A.offsetWidth;A.classList.add('shake')}}
 document.addEventListener('keydown',e=>{if(!$('auth').classList.contains('on')||!$('dots'))return;if(/^\d$/.test(e.key))press(e.key);else if(e.key==='Backspace')press('⌫')});
+/* ---- language (per phone): en / hi / hg ---- */
+const TR={"Home":["होम","Home"],"Bill":["बिल","Bill"],"Items":["सामान","Saman"],"Udhaar":["उधार","Udhaar"],"Reports":["रिपोर्ट","Report"],"Settings":["सेटिंग्स","Settings"],"Language":["भाषा","Bhasha"],
+"Today's sales":["आज की बिक्री","Aaj ki bikri"],"Bills":["बिल","Bill"],"Total":["कुल","Total"],"Due":["बकाया","Baaki"],"GST included":["GST शामिल","GST shamil"],"Discount ₹":["छूट ₹","Discount ₹"],"Apply discount":["छूट लगाएं","Discount lagayein"],"Advance received ₹":["एडवांस मिला ₹","Advance mila ₹"],
+"Save bill":["बिल सेव करें","Bill save karein"],"Send bill via":["बिल भेजें","Bill bhejein"],"Print":["प्रिंट","Print"],"WhatsApp":["व्हाट्सऐप","WhatsApp"],"SMS":["एसएमएस","SMS"],"Close":["बंद करें","Band karein"],"Cancel":["रद्द करें","Cancel"],"OK":["ठीक है","OK"],"Save":["सेव करें","Save"],"Apply":["लागू करें","Apply"],"Logout":["लॉगआउट","Logout"],
+"Shop":["दुकान","Dukaan"],"Accounts":["खाते","Accounts"],"Appearance":["दिखावट","Look"],"Reset":["रीसेट","Reset"],"Owner":["मालिक","Malik"],"Cashier":["कैशियर","Cashier"],"Add account":["खाता जोड़ें","Account jodein"],"Change security password":["सुरक्षा पासवर्ड बदलें","Security password badlein"],"Export backup":["बैकअप डाउनलोड करें","Backup download karein"],"Restore backup":["बैकअप वापस लाएं","Backup restore karein"],
+"Reset all Udhaar":["सारा उधार रीसेट करें","Poora Udhaar reset karein"],"Reset this phone & disconnect":["यह फोन रीसेट करें और डिस्कनेक्ट करें","Yeh phone reset karke disconnect karein"],"🏪 Shop":["🏪 दुकान","🏪 Dukaan"],"🧾 Billing & sending bills":["🧾 बिलिंग और बिल भेजना","🧾 Billing aur bill bhejna"],"👥 Staff & security":["👥 स्टाफ और सुरक्षा","👥 Staff aur security"],"💾 Data & sync":["💾 डेटा और सिंक","💾 Data aur sync"],"Switch features on or off":["सुविधाएं चालू/बंद करें","Features on/off karein"],
+"Add / edit item":["सामान जोड़ें / बदलें","Saman jodein / badlein"],"Save item":["सामान सेव करें","Saman save karein"],"Bulk import (fast)":["एक साथ आयात (तेज़)","Bulk import (fast)"],"Import items":["सामान आयात करें","Items import karein"],"Show example":["उदाहरण देखें","Example dekhein"],"Load current items":["मौजूदा सामान लोड करें","Maujooda items load karein"],"Load CSV file":["CSV फ़ाइल लोड करें","CSV file load karein"],
+"Add quantities to existing stock (for purchase bills)":["मौजूदा स्टॉक में मात्रा जोड़ें (खरीद बिल के लिए)","Maujooda stock mein quantity jodein (purchase bill ke liye)"],"Change prices (market rate)":["दाम बदलें (बाज़ार भाव)","Daam badlein (market rate)"],"Undo last change":["आखिरी बदलाव वापस लें","Aakhri badlav undo karein"],"All items":["सभी सामान","Saare items"],"Kg items only":["सिर्फ किलो वाले","Sirf kg wale items"],"Litre items only":["सिर्फ लीटर वाले","Sirf litre wale items"],"Piece items only":["सिर्फ पीस वाले","Sirf piece wale items"],
+"Sold by piece":["पीस में बिकता है","Piece mein bikta hai"],"Sold by weight (kg)":["वज़न से बिकता है (किलो)","Weight se bikta hai (kg)"],"Sold by volume (litre)":["लीटर में बिकता है","Litre mein bikta hai"],"📷 Scan bill photo":["📷 बिल की फोटो स्कैन करें","📷 Bill photo scan karein"],
+"Type item name to find it, or scan barcode":["नाम लिखें या बारकोड स्कैन करें","Naam likhein ya barcode scan karein"],"Shop name":["दुकान का नाम","Dukaan ka naam"],"Customer name":["ग्राहक का नाम","Customer ka naam"],"Customer phone":["ग्राहक का फोन","Customer ka phone"],"Name":["नाम","Naam"],"Search inventory…":["सामान खोजें…","Inventory khojein…"],"Price ₹ per unit":["दाम ₹ प्रति इकाई","Daam ₹ per unit"],"Stock":["स्टॉक","Stock"],
+"Discount option at billing":["बिलिंग में छूट का विकल्प","Billing mein discount option"],"GST on bills & items":["बिल और सामान पर GST","Bill aur items par GST"],"UPI QR payments":["UPI QR भुगतान","UPI QR payment"],"Udhaar (credit) & balances":["उधार और बकाया","Udhaar aur balance"],"Stock tracking":["स्टॉक ट्रैकिंग","Stock tracking"],"Send bill by SMS":["बिल SMS से भेजें","Bill SMS se bhejein"],"Send bill by WhatsApp":["बिल व्हाट्सऐप से भेजें","Bill WhatsApp se bhejein"],
+"Advance money received (at billing)":["एडवांस पैसा (बिल बनाते समय)","Advance paisa (billing ke time)"],"Show Due money":["बकाया दिखाएं","Baaki paisa dikhayein"],"Show Total when sending bills":["बिल भेजते समय कुल दिखाएं","Bill bhejte time Total dikhayein"],"PIN lock (ask for PIN when opening the app)":["PIN लॉक (ऐप खोलने पर PIN पूछें)","PIN lock (app kholne par PIN poochein)"],
+"Set up your shop in under a minute":["एक मिनट में अपनी दुकान सेट करें","Ek minute mein apni dukaan set karein"],"Your name":["आपका नाम","Aapka naam"],"Create 4-digit PIN":["4 अंकों का PIN बनाएं","4-digit PIN banayein"],"Security password":["सुरक्षा पासवर्ड","Security password"],"(needed to change UPI ID)":["(UPI ID बदलने के लिए ज़रूरी)","(UPI ID badalne ke liye zaroori)"],"(Optional)":["(वैकल्पिक)","(Optional)"],
+"Adding a UPI ID is optional. You can skip it and add it later in Settings.":["UPI ID डालना ज़रूरी नहीं है। आप इसे छोड़कर बाद में सेटिंग्स में जोड़ सकते हैं।","UPI ID daalna zaroori nahi hai. Aap ise chhod kar baad mein Settings mein add kar sakte hain."],"Create account & start":["खाता बनाएं और शुरू करें","Account banayein aur shuru karein"],"Connect to an existing shop":["मौजूदा दुकान से जुड़ें","Maujooda shop se judein"],"Enter your 4-digit PIN":["अपना 4 अंकों का PIN डालें","Apna 4-digit PIN daalein"],"Wrong PIN":["गलत PIN","Galat PIN"],
+"Received":["मिला","Mila"],"Edit":["बदलें","Badlein"],"Delete":["हटाएं","Hatayein"],"Saved":["सेव हो गया","Save ho gaya"],"Remind":["याद दिलाएं","Yaad dilayein"],"Statement":["स्टेटमेंट","Statement"],"✓ Payment received":["✓ पैसे मिल गए","✓ Payment mil gaya"],"Day close":["दिन का हिसाब","Din ka hisaab"],"Cash sales":["नकद बिक्री","Cash bikri"],"Advances":["एडवांस","Advance"],"Expected cash":["अपेक्षित नकद","Expected cash"],"Cash counted ₹":["गिना हुआ नकद ₹","Gina hua cash ₹"],"Check":["जाँचें","Check karein"],"Udhaar given":["उधार दिया","Udhaar diya"],"Udhaar received":["उधार मिला","Udhaar mila"],"All months":["सभी महीने","Saare mahine"],"Monthly report":["महीने की रिपोर्ट","Mahine ki report"],"Today":["आज","Aaj"],"Sales":["बिक्री","Bikri"],"Total sales":["कुल बिक्री","Total bikri"],"Bills made by":["बिल किसने बनाए","Bill kisne banaye"],"By payment mode":["भुगतान के तरीके से","Payment mode ke hisaab se"],"Low stock (≤5)":["कम स्टॉक (≤5)","Kam stock (≤5)"],"Top items":["सबसे ज़्यादा बिकने वाले","Sabse zyada bikne wale"],"Who took udhaar this month":["इस महीने उधार किसने लिया","Is mahine udhaar kisne liya"]};
+let LANG=null;try{LANG=localStorage.getItem('qb_lang')}catch(e){}
+const li=()=>LANG==='hi'?0:LANG==='hg'?1:-1;
+function tn(n){const cur=n.nodeValue,o=(n.__t!==undefined&&cur===n.__t)?n.__o:cur;n.__o=o;const k=o.trim(),e=TR[k],i=li(),out=(e&&i>=0)?o.replace(k,e[i]):o;n.__t=out;if(out!==cur)n.nodeValue=out}
+function ta(el){['placeholder','title'].forEach(a=>{const cur=el.getAttribute&&el.getAttribute(a);if(cur===null||cur===undefined)return;const m='__'+a,o=(el[m]&&cur===el[m].t)?el[m].o:cur,e=TR[o.trim()],i=li(),out=(e&&i>=0)?e[i]:o;el[m]={o,t:out};if(out!==cur)el.setAttribute(a,out)})}
+function trAll(r){ta(r);const w=document.createTreeWalker(r,5);let n;while(n=w.nextNode()){if(n.nodeType===3){if(n.nodeValue.trim()&&!/^(SCRIPT|STYLE|PRE|TEXTAREA)$/.test(n.parentNode.tagName))tn(n)}else ta(n)}}
+let trBusy=false;new MutationObserver(ms=>{if(trBusy)return;trBusy=true;try{ms.forEach(m=>{if(m.type==='childList')m.addedNodes.forEach(x=>{if(x.nodeType===3){if(x.nodeValue.trim()&&!/^(SCRIPT|STYLE|PRE|TEXTAREA)$/.test(x.parentNode.tagName))tn(x)}else if(x.nodeType===1)trAll(x)});else if(m.type==='characterData'){if(m.target.nodeValue.trim()&&!/^(SCRIPT|STYLE|PRE|TEXTAREA)$/.test(m.target.parentNode.tagName))tn(m.target)}else ta(m.target)})}finally{trBusy=false}}).observe(document.body,{childList:true,subtree:true,characterData:true,attributes:true,attributeFilter:['placeholder','title']});
+function setLang(v){LANG=v;try{localStorage.setItem('qb_lang',v)}catch(e){}trAll(document.body)}
+const LS=id=>'<select id="'+id+'" style="margin-bottom:10px"><option value="en">English</option><option value="hi">हिन्दी</option><option value="hg">Hinglish</option></select>';
+function bindLang(id){const s=$(id);if(!s)return;s.value=LANG||'en';s.onchange=e=>setLang(e.target.value)}
+function langScreen(){$('auth').classList.add('on');$('app').style.display='none';$('authBody').innerHTML='<div class="logo">🌐</div><h1 class="ah">Choose language<br>भाषा चुनें</h1><p class="as">Bhasha chunein</p>'+LS('lsel0')+'<button class="pri big" id="lgo">Continue / आगे बढ़ें</button>';bindLang('lsel0');$('lgo').onclick=()=>{if(!LANG)setLang('en');boot()}}
+const _boot=boot;boot=function(){if(!LANG)return langScreen();_boot();if($('auth').classList.contains('on')&&$('authBody')){$('authBody').insertAdjacentHTML('afterbegin',LS('lsel1'));bindLang('lsel1')}};
 function enter(u){me=u;try{sessionStorage.setItem('qb_me',u.name)}catch(e){}$('auth').classList.remove('on');$('app').style.display='block';tab='home';applyF();draw()}
 function logout(){me=null;try{sessionStorage.removeItem('qb_me')}catch(e){}cart=[];boot()}
 $('out').onclick=logout;$('out2').onclick=logout;
@@ -214,7 +239,7 @@ const owner=()=>me&&me.role==='owner';
 /* ---------- features / nav ---------- */
 function applyF(){const f=db.f;document.body.classList.toggle('liquid',!!f.liquid);$('out').style.display=f.lock?'':'none';$('out2').parentNode.style.display=f.lock?'':'none';
  $('discbox').style.display=f.discount?'':'none';if(!f.discount){$('dchk').checked=false}
- $('gstrow').style.display=(f.gst&&!f.tax)?'':'none';$('taxbox').style.display=f.tax?'':'none';
+ $('gstrow').style.display=f.gst?'':'none';
  const modes=['Cash'].concat(f.upi?['UPI']:[],['Card'],f.udhaar?['Udhaar']:[]),cur=$('mode').value;
  $('mode').innerHTML=modes.map(m=>`<option>${m}</option>`).join('');if(modes.includes(cur))$('mode').value=cur;
  $('advrow').style.display=f.adv?'':'none';if(!f.adv)$('adv').value=0;$('ig').style.display=f.gst?'':'none';$('is').style.display=f.stock?'':'none';
@@ -226,16 +251,7 @@ function applyF(){const f=db.f;document.body.classList.toggle('liquid',!!f.liqui
  document.querySelectorAll('.tabs>section').forEach(s=>s.classList.toggle('on',s.id==='t-'+tab))}
 /* ---------- billing ---------- */
 function totals(){const sub=cart.reduce((s,l)=>s+l.price*l.qty,0),d=db.f.discount&&$('dchk').checked?Math.min(+$('disc').value||0,sub):0,k=sub?(sub-d)/sub:0;
- const gst=db.f.gst?cart.reduce((s,l)=>{const t=l.price*l.qty*k;return s+t-t/(1+l.gst/100)},0):0;if(db.f.tax){const x=TX(),g=x.r/100,r2=v=>Math.round(v*100)/100,net=r2(sub-d),base=x.ix?net/(1+g):net,gi=x.ix?r2(net-base):0,on=x.sc>0&&$('scchk').checked,sc=on?r2(base*x.sc/100):0,ga=r2(x.ix?(x.onsc?sc*g:0):(net+(x.onsc?sc:0))*g),raw=r2(net+sc+ga),tot=x.ro?Math.round(raw):raw;return{sub,d,tx:1,sc,scr:on?x.sc:0,rt:x.r,sp:x.sp,ix:x.ix,gi,ga,gst:r2(gi+ga),ro:r2(tot-raw),tot}}
- return{sub,d,tot:sub-d,gst}}
-function taxRows(b){if(!b.tx)return[];const rows=[],h2=fr(b.rt/2);if(b.sc>0)rows.push(['Service charge ('+fr(b.scr)+'%)',R(b.sc)]);
- const add=(a,suf)=>{if(!(a>0))return;if(b.sp)rows.push(['CGST '+h2+'%'+suf,R(a/2)],['SGST '+h2+'%'+suf,R(a/2)]);else rows.push(['GST '+fr(b.rt)+'%'+suf,R(a)])};
- add(b.gi,b.ix?' (incl.)':'');add(b.ga,b.ix?' on service':'');
- if(Math.abs(b.ro||0)>=0.005)rows.push(['Round off',(b.ro<0?'-':'+')+R(Math.abs(b.ro))]);return rows}
-function txUI(t){const x=TX(),on=!!db.f.tax;$('sclab').style.display=(on&&x.sc>0)?'':'none';$('sctxt').textContent='Service charge ('+fr(x.sc)+'%)';
- const rows=(on&&t.sub>0)?[['Subtotal',R(t.sub)]].concat(t.d>0?[['Discount','-'+R(t.d)]]:[],taxRows(t)):[];
- $('taxrows').innerHTML=rows.map(r=>'<div class="row"><span class="mu">'+r[0]+'</span><span class="r mu">'+r[1]+'</span></div>').join('')}
-function smsTx(b){if(!b.tx)return'';const a=[];if(b.sc>0)a.push('service charge '+RS(b.sc));if(b.gst>0)a.push('GST '+RS(b.gst));return a.length?' (incl. '+a.join(' + ')+')':''}
+ const gst=db.f.gst?cart.reduce((s,l)=>{const t=l.price*l.qty*k;return s+t-t/(1+l.gst/100)},0):0;return{sub,d,tot:sub-d,gst}}
 function upiUrl(amt,note){return 'upi://pay?pa='+encodeURIComponent(db.upi)+'&pn='+encodeURIComponent(db.shop)+'&am='+amt.toFixed(2)+'&cu=INR&tn='+encodeURIComponent(note)}
 function qrHtml(url){try{const q=qrcode(0,'M');q.addData(url);q.make();return '<div class="qr">'+q.createSvgTag({cellSize:4,margin:0,scalable:true})+'</div>'}catch(e){return '<div class="mu">QR could not load (check internet once)</div>'}}
 function drawQR(){const bx=$('qrbox'),t=totals();
@@ -265,18 +281,18 @@ function drawBill(){const q=$('q').value.trim().toLowerCase();$('res').innerHTML
  $('cart').innerHTML=cart.length?'':'<div class="mu">Cart is empty. Tap an item above.</div>';
  cart.forEach((l,i)=>{const d=document.createElement('div');d.className='row';
   const wt=l.unit&&l.unit!=='pcs';
-  d.innerHTML=`<div>${esc(l.name)}<div class="mu">${R(l.price)}${wt?'/'+U(l.unit):''}${db.f.gst&&!db.f.tax?' · GST '+l.gst+'%':''}</div></div>`+(wt?`<div class="s row"><input class="wq" type="number" step="any" min="0" value="${l.qty}" style="width:76px"><span class="mu">${U(l.unit)}</span><button data-a="x">✕</button></div>`:`<div class="s row"><button data-a="-">−</button><b>${l.qty}</b><button data-a="+">+</button></div>`)+`<div class="s b r" style="min-width:64px">${R(l.price*l.qty)}</div>`;
+  d.innerHTML=`<div>${esc(l.name)}<div class="mu">${R(l.price)}${wt?'/'+U(l.unit):''}${db.f.gst?' · GST '+l.gst+'%':''}</div></div>`+(wt?`<div class="s row"><input class="wq" type="number" step="any" min="0" value="${l.qty}" style="width:76px"><span class="mu">${U(l.unit)}</span><button data-a="x">✕</button></div>`:`<div class="s row"><button data-a="-">−</button><b>${l.qty}</b><button data-a="+">+</button></div>`)+`<div class="s b r" style="min-width:64px">${R(l.price*l.qty)}</div>`;
   const wq=d.querySelector('.wq');if(wq)wq.onchange=()=>{const q=parseFloat(wq.value);if(q>0)l.qty=q;else cart.splice(i,1);drawBill()};
   d.querySelectorAll('button').forEach(b=>b.onclick=()=>{if(b.dataset.a==='x')cart.splice(i,1);else{l.qty+=b.dataset.a==='+'?1:-1;if(l.qty<1)cart.splice(i,1)}drawBill()});$('cart').append(d)});
  $('dval').style.display=$('dchk').checked?'':'none';
- const t=totals();txUI(t);$('gst').textContent=R(t.gst);$('tot').textContent=R(t.tot);{const a=advNow(t.tot),dv=t.tot-a;$('duerow').style.display=(db.f.due&&t.tot>0&&(a>0||$('mode').value==='Udhaar'))?'':'none';$('duev').textContent=R(dv)}drawQR()}
+ const t=totals();$('gst').textContent=R(t.gst);$('tot').textContent=R(t.tot);{const a=advNow(t.tot),dv=t.tot-a;$('duerow').style.display=(db.f.due&&t.tot>0&&(a>0||$('mode').value==='Udhaar'))?'':'none';$('duev').textContent=R(dv)}drawQR()}
 const advNow=tot=>db.f.adv?Math.min(Math.max(+$('adv').value||0,0),tot):0;
 let autoN=false,autoP=false;
 const dg=x=>(x||'').replace(/\D/g,'').slice(-10);
 function udm(){const m={},g=c=>m[c]=m[c]||{tot:0,paid:0,adv:0,bills:0};
  db.bills.forEach(b=>{const d=dueOf(b);if(d>0.005&&b.cust&&!b.cleared){const o=g(b.cust);o.tot+=d;o.adv+=(b.adv||0);o.bills+=b.total}});
  (db.carry||[]).forEach(x=>{g(x.cust).tot+=x.amt});
- db.pay.forEach(p=>{if(!p.cleared&&m[p.cust])m[p.cust].paid+=p.amt});return m}
+ db.pay.forEach(p=>{if(!p.cleared&&!p.void&&m[p.cust])m[p.cust].paid+=p.amt});return m}
 const pend=c=>{const o=udm()[c];return o?o.tot-o.paid:0};
 const mk=d=>{const x=new Date(d);return x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')};
 const mlab=k=>{const a=k.split('-');return new Date(+a[0],a[1]-1,1).toLocaleDateString(undefined,{month:'long',year:'numeric'})};
@@ -305,30 +321,28 @@ $('save').onclick=(ev,force)=>{if(!cart.length)return alert('Add items first');
  const m=$('mode').value,cn=$('cn').value.trim();if(m==='Udhaar'&&!cn)return alert('Enter customer name for Udhaar');
  {const tt=totals().tot,aa=advNow(tt);if(aa>0&&tt-aa>0.005&&!cn)return alert('Enter customer name to track the due amount')}
  if(db.f.stock&&!force){const sh=cart.find(l=>{const it=db.items.find(i=>i.id===l.id);return it&&it.stock<l.qty});if(sh)return ask(sh.name+' has low stock. Save bill anyway?',()=>$('save').onclick(null,true))}
- const t=totals(),bill={no:db.n++,date:Date.now(),cust:cn,phone:$('cp').value.trim(),lines:cart.map(l=>({...l})),disc:t.d,gst:t.gst,total:t.tot,...(t.tx?{tx:1,sub:t.sub,sc:t.sc,scr:t.scr,rt:t.rt,sp:t.sp,ix:t.ix,gi:t.gi,ga:t.ga,ro:t.ro}:{}),adv:advNow(t.tot),mode:m,by:me.name};
+ const t=totals(),bill={no:db.n++,date:Date.now(),cust:cn,phone:$('cp').value.trim(),lines:cart.map(l=>({...l})),disc:t.d,gst:t.gst,total:t.tot,adv:advNow(t.tot),mode:m,by:me.name};
  if(db.f.stock)cart.forEach(l=>{const it=db.items.find(i=>i.id===l.id);if(it)it.stock=Math.round((it.stock-l.qty)*1000)/1000});
- db.bills.push(bill);save();cart=[];$('disc').value=0;$('adv').value=0;$('dchk').checked=false;$('scchk').checked=true;$('cn').value='';$('cp').value='';autoN=autoP=false;drawKnown();$('chint').textContent='';show(bill);{const via=$('sendvia').value;if(bill.phone&&via==='SMS')smsSend(bill);if(bill.phone&&via==='WhatsApp')waSend(bill)}drawBill()};
+ db.bills.push(bill);save();cart=[];$('disc').value=0;$('adv').value=0;$('dchk').checked=false;$('cn').value='';$('cp').value='';autoN=autoP=false;drawKnown();$('chint').textContent='';show(bill);{const via=$('sendvia').value;if(bill.phone&&via==='SMS')smsSend(bill);if(bill.phone&&via==='WhatsApp')waSend(bill)}drawBill()};
 function dueOf(b){return (b.adv>0||b.mode==='Udhaar')?Math.max(0,b.total-(b.adv||0)):0}
 function advLines(b,inv){let x='';if(db.f.adv&&b.adv>0)x+='\nAdvance received: '+(inv?R(b.adv):RS(b.adv));if(db.f.due&&dueOf(b)>0.005)x+='\nDue: '+(inv?R(dueOf(b)):RS(dueOf(b)));return x}
 function invText(b){const ln='-'.repeat(34);let s=db.shop+'\n'+new Date(b.date).toLocaleString()+'\nBill #'+b.no+(b.cust?'\nCustomer: '+b.cust:'')+'\n'+ln+'\n';
  b.lines.forEach(l=>s+=l.name+'\n  '+l.qty+(l.unit&&l.unit!=='pcs'?' '+U(l.unit):'')+' x '+l.price+' = '+R(l.qty*l.price)+'\n');
- return s+ln+'\n'+(b.tx?'Subtotal: '+R(b.sub)+'\n':'')+(b.disc?'Discount: -'+R(b.disc)+'\n':'')+(b.tx?taxRows(b).map(r=>r[0]+': '+r[1]+'\n').join(''):(db.f.gst?'GST included: '+R(b.gst)+'\n':''))+'TOTAL: '+R(b.total)+advLines(b,true)+'\nPaid by: '+b.mode+(b.mode==='Udhaar'?' (pending)':'')+'\n'+ln+'\nThank you! Visit again.'}
-function show(b){last=b;$('inv').textContent=invText(b);$('invby').textContent=b.by?'Billed by: '+b.by:'';
+ return s+ln+'\n'+(b.disc?'Discount: -'+R(b.disc)+'\n':'')+(db.f.gst?'GST included: '+R(b.gst)+'\n':'')+'TOTAL: '+R(b.total)+advLines(b,true)+'\nPaid by: '+b.mode+(b.mode==='Udhaar'?' (pending)':'')+'\n'+ln+'\nThank you! Visit again.'}
+function show(b){last=b;$('pok').style.display=(b.mode==='UPI'&&!b.paidOk)?'':'none';$('inv').textContent=invText(b);$('invby').textContent=b.by?'Billed by: '+b.by:'';
  $('invqr').innerHTML=b.mode==='UPI'&&db.upi?qrHtml(upiUrl(b.total,'Bill '+b.no))+'<div class="b" style="text-align:center">Scan to pay '+R(b.total)+'</div>':'';
  $('sm').style.display=db.f.sms?'':'none';$('wa').style.display=db.f.wa?'':'none';$('ov').classList.add('on')}
 $('cl').onclick=()=>$('ov').classList.remove('on');$('pr').onclick=()=>window.print();
 const RS=n=>'Rs.'+(Math.round(n*100)/100);
-function smsText(b){return db.shop+'\n'+new Date(b.date).toLocaleDateString()+'\n\n'+b.lines.map(l=>l.name+' x'+l.qty+(l.unit&&l.unit!=='pcs'?U(l.unit):'')).join(', ')+(db.f.tot?'\n\nTotal: '+RS(b.total)+(b.disc?' (disc '+RS(b.disc)+')':'')+smsTx(b):'')+advLines(b,false)+'\nPaid: '+b.mode+(b.mode==='Udhaar'?' (pending)':'')+'\n\nThank you!\n\n\nBill no: '+b.no}
+function smsText(b){return db.shop+'\n'+new Date(b.date).toLocaleDateString()+'\n\n'+b.lines.map(l=>l.name+' x'+l.qty+(l.unit&&l.unit!=='pcs'?U(l.unit):'')).join(', ')+(db.f.tot?'\n\nTotal: '+RS(b.total)+(b.disc?' (disc '+RS(b.disc)+')':''):'')+advLines(b,false)+'\nPaid: '+b.mode+(b.mode==='Udhaar'?' (pending)':'')+'\n\nThank you!\n\n\nBill no: '+b.no}
 function smsSend(b){let p=(b.phone||'').replace(/\D/g,'').replace(/^0+/,'');p=p.length===10?'+91'+p:(p?'+'+p:'');
  window.open('sms:'+p+(/iPhone|iPad|iPod/.test(navigator.userAgent)?'&':'?')+'body='+encodeURIComponent(smsText(b)),'_blank')}
 function waText(b){const ln='━━━━━━━━━━━━━━',d=new Date(b.date),dt=d.toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})+', '+d.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'}).toUpperCase();
  let t='🧾 *'+db.shop+'*\n'+ln+'\n📅 '+dt+'\n🔖 Bill No: *#'+b.no+'*'+(b.cust?'\n👤 Customer: '+b.cust:'')+'\n'+ln+'\n*Items*\n';
  b.lines.forEach((l,i)=>{t+=(i+1)+'. '+l.name+'\n    '+l.qty+(l.unit&&l.unit!=='pcs'?' '+U(l.unit):'')+' x '+R(l.price)+' = '+R(l.qty*l.price)+'\n'});
  t+=ln+'\n';
- if(b.tx)t+='Subtotal: '+R(b.sub)+'\n';
  if(b.disc>0)t+='Discount: -'+R(b.disc)+'\n';
- if(b.tx)taxRows(b).forEach(r=>t+=r[0]+': '+r[1]+'\n');
- else if(db.f.gst&&b.gst>0)t+='GST included: '+R(b.gst)+'\n';
+ if(db.f.gst&&b.gst>0)t+='GST included: '+R(b.gst)+'\n';
  if(db.f.tot)t+='*Total: '+R(b.total)+'*\n';
  if(db.f.adv&&b.adv>0)t+='✅ Advance received: '+R(b.adv)+'\n';
  if(db.f.due&&dueOf(b)>0.005)t+='⏳ *Due: '+R(dueOf(b))+'*\n';
@@ -336,7 +350,7 @@ function waText(b){const ln='━━━━━━━━━━━━━━',d=new D
  return t}
 function waSend(b){let p=(b.phone||'').replace(/\D/g,'').replace(/^0+/,'');if(p.length===10)p='91'+p;
  window.open('https://wa.me/'+p+'?text='+encodeURIComponent(waText(b)),'_blank')}
-$('sm').onclick=()=>smsSend(last);$('wa').onclick=()=>waSend(last);
+$('sm').onclick=()=>smsSend(last);$('wa').onclick=()=>waSend(last);$('pok').onclick=()=>{last.paidOk=true;save();$('pok').style.display='none';toast('Payment marked as received');draw()};
 $('gear').onclick=()=>{tab='set';applyF();draw()};
 /* ---------- items / udhaar / reports ---------- */
 function drawItems(){const q=$('isq').value.trim().toLowerCase(),L=db.items.filter(i=>!q||i.name.toLowerCase().includes(q)||(i.code||'').includes(q));
@@ -387,15 +401,29 @@ $('addi').onclick=()=>{const n=$('in').value.trim(),p=+$('ip').value;if(!n||$('i
  const o={name:n,code:$('ic').value.trim(),price:p,gst:+$('ig').value||0,stock:+$('is').value||0,unit:$('iu').value},id=+$('addi').dataset.id;
  if(id){Object.assign(db.items.find(i=>i.id===id),o);delete $('addi').dataset.id}else db.items.push({id:Date.now(),...o});
  ['in','ic','ip','is'].forEach(k=>$(k).value='');$('iu').value='pcs';save();drawItems();drawBill()};
+const phoneOf=c=>{const b=db.bills.filter(x=>x.cust===c&&x.phone).pop();return b?b.phone:''};
+function waTo(ph,t){let p=(ph||'').replace(/\D/g,'').replace(/^0+/,'');if(p.length===10)p='91'+p;window.open('https://wa.me/'+p+'?text='+encodeURIComponent(t),'_blank')}
+function stmtText(c,o){const bl=db.bills.filter(b=>b.cust===c&&dueOf(b)>0.005&&!b.cleared),py=db.pay.filter(p=>p.cust===c&&!p.cleared&&!p.void),ln='━━━━━━━━━━━━━━',dd=x=>new Date(x).toLocaleDateString('en-IN');
+ let t='📒 *'+db.shop+'*\nStatement for *'+c+'*\n'+ln+'\n';
+ const er=o.tot-(o.bills-o.adv);if(er>0.005)t+='Earlier balance: '+R(er)+'\n';
+ bl.forEach(b=>{t+=dd(b.date)+' · Bill #'+b.no+': '+R(b.total)+(b.adv>0?' (advance '+R(b.adv)+')':'')+'\n'});
+ py.forEach(p=>{t+=dd(p.date)+' · Received: '+R(p.amt)+'\n'});
+ return t+ln+'\n⏳ *Pending: '+R(o.tot-o.paid)+'*\n\n🙏 _Thank you!_'}
 function drawCust(){const m=udm(),ow=owner();
  const pe=c=>m[c].tot-m[c].paid>0.005,k=Object.keys(m).sort((a,b)=>pe(b)-pe(a)),old=k.filter(c=>!pe(c));
  $('custs').innerHTML='<div class="row"><div class="b">Udhaar</div>'+(ow&&old.length?'<button class="s dng" id="clrold">Delete settled ('+old.length+')</button>':'')+'</div>'+(k.length?'':'<div class="mu">No udhaar yet.</div>');
  const co=$('clrold');if(co)co.onclick=()=>ask('Delete the udhaar records of '+old.length+' customer(s) who have paid everything? Your sales reports are not changed.',()=>{old.forEach(clearCust);toast('Old udhaar records deleted');draw()});
- k.forEach(c=>{const o=m[c],bal=Math.round((o.tot-o.paid)*100)/100,d=document.createElement('div');d.className='row';
-  d.innerHTML=`<div>${esc(c)}<div class="mu">Bills ${R(o.bills)}${o.adv>0?' · Advance '+R(o.adv):''}${(o.tot-(o.bills-o.adv))>0.005?' · Earlier '+R(o.tot-(o.bills-o.adv)):''} · Received later ${R(o.paid)}</div></div>`+(pe(c)?`<div class="s b low">${R(bal)} pending</div><button class="s pri" data-a="r">Received</button>`:'<div class="s b ok">✓ Received</div>')+(ow?'<button class="s" data-a="d" title="Delete record">🗑</button>':'');
+ k.forEach(c=>{const o=m[c],bal=Math.round((o.tot-o.paid)*100)/100,d=document.createElement('div');d.className='row cr';
+  d.innerHTML=`<div>${esc(c)}<div class="mu">Bills ${R(o.bills)}${o.adv>0?' · Advance '+R(o.adv):''}${(o.tot-(o.bills-o.adv))>0.005?' · Earlier '+R(o.tot-(o.bills-o.adv)):''} · Received later ${R(o.paid)}</div></div>`+(pe(c)?`<div class="s b low">${R(bal)} pending</div><button class="s pri" data-a="r">Received</button>`:'<div class="s b ok">✓ Received</div>')+(pe(c)?'<button class="s" data-a="m">Remind</button>':'')+'<button class="s" data-a="t">Statement</button>'+(ow?'<button class="s" data-a="d" title="Delete record">🗑</button>':'');
+  const mb=d.querySelector('[data-a=m]');if(mb)mb.onclick=()=>waTo(phoneOf(c),'Hello '+c+', a gentle reminder from '+db.shop+': '+R(bal)+' is pending. Please pay when convenient. 🙏 Thank you!');
+  d.querySelector('[data-a=t]').onclick=()=>waTo(phoneOf(c),stmtText(c,o));
   const rb=d.querySelector('[data-a=r]');if(rb)rb.onclick=()=>ask('Amount received from '+c+' (₹)',v=>{const a=parseFloat(v);if(!(a>0))return toast('Enter a valid amount');db.pay.push({cust:c,amt:Math.min(a,o.tot-o.paid),date:Date.now()});save();drawCust();toast('Payment recorded')},bal);
   const db_=d.querySelector('[data-a=d]');if(db_)db_.onclick=()=>ask('Delete the udhaar record of '+c+'?'+(pe(c)?' '+R(bal)+' is still pending and will be forgotten.':'')+' Sales reports are not changed.',()=>{clearCust(c);toast('Record deleted');draw()});
-  $('custs').append(d)})}
+  $('custs').append(d);
+  const ps=db.pay.filter(p=>p.cust===c&&!p.cleared&&!p.void);
+  if(ow&&ps.length){const w=document.createElement('div');w.style.margin='-4px 0 8px 12px';ps.forEach(p=>{const r=document.createElement('div');r.className='row';r.innerHTML='<div class="mu">'+new Date(p.date).toLocaleDateString()+' · Received '+R(p.amt)+'</div><button class="s">Edit</button><button class="s dng">Delete</button>';const[eb,xb]=r.querySelectorAll('button');
+   eb.onclick=()=>ask('Correct the amount received (₹)',v=>{const a=parseFloat(v);if(!(a>0))return toast('Enter a valid amount');p.amt=a;save();drawCust();draw();toast('Payment corrected')},p.amt);
+   xb.onclick=()=>ask('Delete this payment of '+R(p.amt)+'? The amount becomes pending again.',()=>{p.void=true;save();drawCust();draw();toast('Payment deleted')});w.append(r)});$('custs').append(w)}})}
 let repM=null;
 function drawRep(){const nowK=mk(Date.now());if(!repM)repM=nowK;
  const t=db.bills.filter(b=>sameDay(b.date)),by={},top={};t.forEach(b=>{by[b.mode]=(by[b.mode]||0)+b.total;b.lines.forEach(l=>top[l.name]=(top[l.name]||0)+l.qty)});
@@ -405,7 +433,7 @@ function drawRep(){const nowK=mk(Date.now());if(!repM)repM=nowK;
  const mb=db.bills.filter(b=>mk(b.date)===repM).sort((a,b)=>b.date-a.date),ms=mb.reduce((s,b)=>s+b.total,0);
  const mby={},mtop={},ud={};
  mb.forEach(b=>{mby[b.mode]=(mby[b.mode]||0)+b.total;b.lines.forEach(l=>mtop[l.name]=(mtop[l.name]||0)+l.qty);{const dd=dueOf(b);if(dd>0.005&&b.cust){const u=ud[b.cust]=ud[b.cust]||{amt:0,n:0};u.amt+=dd;u.n++}}});
- const udT=Object.values(ud).reduce((s,u)=>s+u.amt,0),rec=db.pay.filter(p=>mk(p.date)===repM).reduce((s,p)=>s+p.amt,0);
+ const udT=Object.values(ud).reduce((s,u)=>s+u.amt,0),rec=db.pay.filter(p=>!p.void&&mk(p.date)===repM).reduce((s,p)=>s+p.amt,0);
  const big='font-size:22px',mu=x=>'<div class="mu" style="margin-top:8px">'+x+'</div>',rw=(a,b)=>`<div class="row"><span>${a}</span><span class="r">${b}</span></div>`;
  const wh=arr=>{const o={};arr.forEach(b=>{const k=b.by||'Unknown',x=o[k]=o[k]||{n:0,s:0};x.n++;x.s+=b.total});return Object.keys(o).map(k=>rw(esc(k)+' <span class="mu">('+o[k].n+' bill'+(o[k].n>1?'s':'')+')</span>',R(o[k].s))).join('')||'<div class="mu">–</div>'};
  $('rep').innerHTML=`<div class="card"><div class="b">Today</div><div class="row"><div>Sales<div class="b" style="${big}">${R(sum)}</div></div><div>Bills<div class="b" style="${big}">${t.length}</div></div></div>
@@ -427,7 +455,7 @@ function drawRep(){const nowK=mk(Date.now());if(!repM)repM=nowK;
  $('rm').onchange=e=>{repM=e.target.value||nowK;drawRep()};
  document.querySelectorAll('#rep .mrow').forEach(r=>r.onclick=()=>{repM=r.dataset.k;drawRep()});
  mb.slice(0,100).forEach(b=>{const d=document.createElement('div');d.className='row';
-  d.innerHTML=`<div>${new Date(b.date).toLocaleDateString()} ${new Date(b.date).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}<div class="mu">Bill ${b.no}${b.cust?' · '+esc(b.cust):''} · ${b.mode}${b.adv>0?' · Adv '+R(b.adv):''} · by ${esc(b.by||'-')}</div></div><div class="s b">${R(b.total)}</div><button class="s">View</button><button class="s">✕</button>`;
+  d.innerHTML=`<div>${new Date(b.date).toLocaleDateString()} ${new Date(b.date).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}<div class="mu">Bill ${b.no}${b.cust?' · '+esc(b.cust):''} · ${b.mode}${b.adv>0?' · Adv '+R(b.adv):''}${b.mode==='UPI'?(b.paidOk?' · ✓ paid':' · ⏳ not confirmed'):''} · by ${esc(b.by||'-')}</div></div><div class="s b">${R(b.total)}</div><button class="s">View</button><button class="s">✕</button>`;
   const [v,x]=d.querySelectorAll('button');v.onclick=()=>show(b);
   x.onclick=()=>ask('Delete bill '+b.no+' ('+R(b.total)+')? Stock is not changed.',()=>{delBills([b]);toast('Bill deleted');draw()});$('mbills').append(d)});
  if(mb.length>100)$('mbills').insertAdjacentHTML('beforeend','<div class="mu">Showing newest 100 of '+mb.length+'.</div>');
@@ -435,11 +463,15 @@ function drawRep(){const nowK=mk(Date.now());if(!repM)repM=nowK;
   const go=()=>{delBills(mb);toast(mlab(repM)+' history deleted');draw()};
   if(db.secpw)ask('Enter the security password to delete',v=>{if(h(v)!==db.secpw)return toast('Wrong password, nothing deleted');go()},'','password');else go()})}
 /* ---------- settings ---------- */
-$('scchk').onchange=()=>drawBill();
-function saveTx(){const n=v=>Math.min(100,Math.max(0,+v||0));db.tax={r:n($('txr').value),sc:n($('txs').value),onsc:$('txo').checked,sp:$('txp').checked,ix:$('txi').checked,ro:$('txd').checked};save();draw()}
-['txr','txs','txo','txp','txi','txd'].forEach(i=>$(i).onchange=saveTx);
 $('liq').onchange=e=>{db.f.liquid=e.target.checked;save();applyF()};
-function drawSet(){QBSync.box();$('liq').checked=!!db.f.liquid;$('taxset').style.display=db.f.tax?'':'none';{const x=TX();$('txr').value=x.r;$('txs').value=x.sc;$('txo').checked=x.onsc;$('txp').checked=x.sp;$('txi').checked=x.ix;$('txd').checked=x.ro}$('sn').value=db.shop;$('su').value=db.upi;
+function dayCard(){const td=new Date().toDateString(),on=x=>new Date(x.date).toDateString()===td,bs=db.bills.filter(on);
+ const cash=bs.filter(b=>b.mode==='Cash').reduce((a,b)=>a+b.total-dueOf(b),0),adv=bs.filter(b=>b.mode!=='Cash').reduce((a,b)=>a+(b.adv||0),0),ur=db.pay.filter(p=>on(p)&&!p.void).reduce((a,p)=>a+p.amt,0),ex=cash+adv+ur;
+ const c=document.createElement('div');c.className='card';const r=(l,v)=>'<div class="row"><span class="mu">'+l+'</span><span>'+R(v)+'</span></div>';
+ c.innerHTML='<div class="b">Day close</div>'+r('Cash sales',cash)+r('Advances',adv)+r('Udhaar received',ur)+'<div class="row"><b>Expected cash</b><b>'+R(ex)+'</b></div><div class="row"><input id="dcc" type="number" placeholder="Cash counted ₹"><button id="dcb" class="s pri">Check</button></div><div class="b" id="dcr"></div><div class="mu">Assumes advances and Udhaar payments were taken in cash.</div>';
+ c.querySelector('#dcb').onclick=()=>{const v=parseFloat(c.querySelector('#dcc').value);if(isNaN(v))return toast('Enter the cash you counted');const d=Math.round((v-ex)*100)/100;c.querySelector('#dcr').textContent=d===0?'✓ Cash matches':d<0?'Short by '+R(-d):'Extra '+R(d)};
+ return c}
+const _dr=drawRep;drawRep=function(){_dr();if(owner())$('rep').append(dayCard())};
+function drawSet(){bindLang('lsel2');QBSync.box();$('liq').checked=!!db.f.liquid;$('sn').value=db.shop;$('su').value=db.upi;
  $('feat').innerHTML='';Object.keys(FEATS).forEach(k=>{const l=document.createElement('label');l.className='t';l.innerHTML=`<input type="checkbox" ${db.f[k]?'checked':''}> ${FEATS[k]}`;
   l.firstChild.onchange=e=>{db.f[k]=e.target.checked;save();applyF();draw()};$('feat').append(l)});
  $('users').innerHTML='';db.users.forEach((u,i)=>{const d=document.createElement('div');d.className='row';d.innerHTML=`<div>${esc(u.name)} <span class="mu">${u.role}</span></div>${u===me?'<span class="s mu">you</span>':'<button class="s">Remove</button>'}`;
@@ -451,6 +483,9 @@ $('ssn').onclick=()=>{db.shop=$('sn').value.trim()||'QuickBill';const nu=$('su')
  else ask('Enter the security password to change the UPI ID',v=>{if(h(v)!==db.secpw){$('su').value=db.upi;return toast('Wrong password, UPI ID not changed')}done()},'','password')};
 $('cpw').onclick=()=>{const setNew=()=>ask('New security password (min 4 characters)',w=>{if(w.length<4)return toast('Password too short');db.secpw=h(w);save();toast('Security password changed')},'','password');
  if(db.secpw)ask('Current security password',v=>{if(h(v)!==db.secpw)return toast('Wrong password');setNew()},'','password');else setNew()};
+function gate(cb){if(!owner())return toast('Only the owner can do this');if(!db.secpw)return alert('First create a security password using "Change security password" in the Shop section.');ask('Enter the security password',v=>{if(h(v)!==db.secpw)return toast('Wrong password');cb()},'','password')}
+$('rsu').onclick=()=>gate(()=>ask('Reset ALL Udhaar? Every customer\'s pending amount and payment history is cleared. If this phone is connected to a shared shop, the other phone is cleared too. Sales reports are not changed.',()=>{Object.keys(udm()).forEach(clearCust);toast('All Udhaar reset');draw()}));
+$('rsd').onclick=()=>gate(()=>ask('Erase ALL data on THIS phone and disconnect from the shared shop? The shared shop online and the other phone are NOT changed. This cannot be undone.',()=>{try{QBSync.disconnect()}catch(e){}try{localStorage.removeItem(K)}catch(e){}location.reload()}));
 $('addu').onclick=()=>{const n=$('un').value.trim(),p=$('up').value;if(!n||!/^\d{4}$/.test(p))return alert('Enter name and a 4-digit PIN');if(db.users.some(u=>u.pin===h(p)))return alert('That PIN is already used by another account');if(db.users.some(u=>u.name===n))return alert('Name already used');
  db.users.push({name:n,pin:h(p),role:$('ur').value});$('un').value=$('up').value='';save();drawSet()};
 $('exp').onclick=()=>{try{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(db)],{type:'application/json'}));a.download='quickbill-backup.json';a.click()}catch(e){alert('Export not available here')}};
@@ -663,7 +698,7 @@ function init(){
  if(cfg){setState('sync');listen();pushAll()}else setState('off');
  window.addEventListener('online',()=>{if(cfg){listen();pushAll()}});
  document.addEventListener('visibilitychange',()=>{if(cfg&&!document.hidden){if(!es||es.readyState===2)listen();pushAll()}})}
-return{init,changed,box,connectScreen,create,join,_t:{merge:mergeChunk,split,assemble,get cfg(){return cfg}}}
+return{disconnect,init,changed,box,connectScreen,create,join,_t:{merge:mergeChunk,split,assemble,get cfg(){return cfg}}}
 })();
 QBSync.init();
 let sn=null;try{sn=sessionStorage.getItem('qb_me')}catch(e){}
