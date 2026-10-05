@@ -121,6 +121,7 @@ body.liquid .tiles button{box-shadow:0 10px 24px #0003,inset 0 1px 0 #ffffff66}
   <div class="row"><input id="in" placeholder="Name"><input id="ic" placeholder="Barcode (optional)"></div>
   <div class="row"><input id="ip" type="text" inputmode="decimal" placeholder="Price ₹ per unit"><input id="ig" type="text" inputmode="decimal" placeholder="GST %" value="5"><input id="is" type="text" inputmode="decimal" placeholder="Stock"></div>
   <div class="row"><select id="iu"><option value="pcs">Sold by piece</option><option value="kg">Sold by weight (kg)</option><option value="l">Sold by volume (litre)</option></select></div>
+  <textarea id="idsc" rows="3" placeholder="Description (optional)" style="display:none;width:100%;margin:0 0 8px;border:1px solid var(--bd);border-radius:10px;padding:9px;background:var(--in,var(--card));color:var(--tx);font:inherit"></textarea>
   <button class="pri" id="addi" style="width:100%">Save item</button></div>
  <div class="card"><div class="b">Bulk import (fast)</div>
   <div class="mu">One item per line: name, price, GST %, stock, barcode, unit (pcs / kg / l). Paste straight from Excel / Google Sheets, or load a CSV file.</div>
@@ -136,7 +137,9 @@ body.liquid .tiles button{box-shadow:0 10px 24px #0003,inset 0 1px 0 #ffffff66}
   <div class="row"><input id="pf" placeholder="Items containing, e.g. dal"><select id="pu"><option value="">All items</option><option value="kg">Kg items only</option><option value="l">Litre items only</option><option value="pcs">Piece items only</option></select></div>
   <div class="row"><input id="pp" type="number" step="any" placeholder="₹ change per unit, e.g. 10 or -5"></div>
   <div class="row"><button id="pgo" class="pri">Apply</button><button id="pun">Undo last change</button></div></div>
+ <div class="card" id="dtrow" style="display:none"><button id="dtb" class="pri" style="width:100%">📖 Item details page</button></div>
  <div class="card"><input id="isq" name="inventory-search" autocomplete="off" autocorrect="off" placeholder="Search inventory…"></div><div class="card" id="items"></div></section>
+<section id="t-det"><div class="card"><div class="row"><button id="detb">← Back to Items</button></div><input id="dsq" autocomplete="off" placeholder="Search items…" style="margin-top:8px"></div><div id="detl"></div></section>
 <section id="t-cust"><div class="card" id="custs"></div></section>
 <section id="t-rep"><div id="rep"></div></section>
 <section id="t-set">
@@ -169,8 +172,8 @@ body.liquid .tiles button{box-shadow:0 10px 24px #0003,inset 0 1px 0 #ffffff66}
 <div id="toast"></div>
 <script>
 const $=id=>document.getElementById(id),K='quickbill_v1';
-const FEATS={discount:'Discount option at billing',gst:'GST on bills & items',upi:'UPI QR payments',udhaar:'Udhaar (credit) & balances',stock:'Stock tracking',sms:'Send bill by SMS',wa:'Send bill by WhatsApp',adv:'Advance money received (at billing)',due:'Show Due money',tot:'Show Total when sending bills',lock:'PIN lock (ask for PIN when opening the app)',log:'Activity log (record who did what)'};
-const def=()=>({shop:'QuickBill',upi:'',users:[],f:{discount:true,gst:true,upi:true,udhaar:true,stock:true,sms:true,wa:true,adv:true,due:true,tot:true,liquid:true,lock:true,log:true},items:[{id:1,name:'Sample item',price:100,gst:5,stock:50,code:'1001'}],bills:[],pay:[],n:1,carry:[],log:[]});
+const FEATS={discount:'Discount option at billing',gst:'GST on bills & items',upi:'UPI QR payments',udhaar:'Udhaar (credit) & balances',stock:'Stock tracking',sms:'Send bill by SMS',wa:'Send bill by WhatsApp',adv:'Advance money received (at billing)',due:'Show Due money',tot:'Show Total when sending bills',lock:'PIN lock (ask for PIN when opening the app)',log:'Activity log (record who did what)',desc:'Item descriptions (add a description to items + Item details page)'};
+const def=()=>({shop:'QuickBill',upi:'',users:[],f:{discount:true,gst:true,upi:true,udhaar:true,stock:true,sms:true,wa:true,adv:true,due:true,tot:true,liquid:true,lock:true,log:true,desc:false},items:[{id:1,name:'Sample item',price:100,gst:5,stock:50,code:'1001'}],bills:[],pay:[],n:1,carry:[],log:[]});
 let db=def();
 try{const s=JSON.parse(localStorage.getItem(K)||'null');if(s){db=Object.assign(def(),s);db.f=Object.assign(def().f,s.f)}}catch(e){}
 const save=()=>{try{localStorage.setItem(K,JSON.stringify(db))}catch(e){}try{QBSync.changed()}catch(e){}};
@@ -244,12 +247,12 @@ function applyF(){const f=db.f;document.body.classList.toggle('liquid',!!f.liqui
  $('gstrow').style.display=f.gst?'':'none';
  const modes=['Cash'].concat(f.upi?['UPI']:[],['Card'],f.udhaar?['Udhaar']:[]),cur=$('mode').value;
  $('mode').innerHTML=modes.map(m=>`<option>${m}</option>`).join('');if(modes.includes(cur))$('mode').value=cur;
- $('advrow').style.display=f.adv?'':'none';if(!f.adv)$('adv').value=0;$('ig').style.display=f.gst?'':'none';$('is').style.display=f.stock?'':'none';
+ $('advrow').style.display=f.adv?'':'none';if(!f.adv)$('adv').value=0;$('ig').style.display=f.gst?'':'none';$('is').style.display=f.stock?'':'none';$('idsc').style.display=f.desc?'':'none';$('dtrow').style.display=(f.desc&&can('items'))?'':'none';
  const tabs=[['home','Home',1,'🏠'],['bill','Bill',1,'🧾'],['items','Items',can('items'),'📦'],['cust','Udhaar',(f.udhaar||f.adv),'📒'],['rep','Reports',can('reports'),'📊']].filter(t=>t[2]);
- if(!(tab==='set'&&owner())&&!tabs.some(t=>t[0]===tab))tab='home';
+ if(!(tab==='set'&&owner())&&!(tab==='det'&&f.desc&&can('items'))&&!tabs.some(t=>t[0]===tab))tab='home';
  $('gear').style.display=owner()?'':'none';const sv=[];if(f.wa)sv.push('WhatsApp');if(f.sms)sv.push('SMS');const cs=$('sendvia').value;
  $('sendvia').innerHTML=['Do not send'].concat(sv).map(m=>'<option>'+m+'</option>').join('');$('sendvia').value=(sv.includes(cs)||cs==='Do not send')?cs:(sv[0]||'Do not send');$('sl').style.display=sv.length?'':'none';
- $('nav').innerHTML='';tabs.forEach(t=>{const b=document.createElement('button');b.innerHTML='<i>'+t[3]+'</i>'+t[1];b.className=t[0]===tab?'on':'';b.onclick=()=>{tab=t[0];applyF();draw()};$('nav').append(b)});
+ $('nav').innerHTML='';tabs.forEach(t=>{const b=document.createElement('button');b.innerHTML='<i>'+t[3]+'</i>'+t[1];b.className=(t[0]===tab||(tab==='det'&&t[0]==='items'))?'on':'';b.onclick=()=>{tab=t[0];applyF();draw()};$('nav').append(b)});
  document.querySelectorAll('.tabs>section').forEach(s=>s.classList.toggle('on',s.id==='t-'+tab))}
 /* ---------- billing ---------- */
 function totals(){const sub=cart.reduce((s,l)=>s+l.price*l.qty,0),d=db.f.discount&&$('dchk').checked?Math.min(+$('disc').value||0,sub):0,k=sub?(sub-d)/sub:0;
@@ -360,8 +363,20 @@ function drawItems(){const q=$('isq').value.trim().toLowerCase(),L=db.items.filt
  L.slice(0,100).forEach(i=>{const d=document.createElement('div');d.className='row';
   d.innerHTML=`<div>${esc(i.name)}<div class="mu">${R(i.price)}${i.unit&&i.unit!=='pcs'?'/'+U(i.unit):''}${db.f.gst?' · GST '+i.gst+'%':''}${i.code?' · #'+esc(i.code):''}</div></div>${db.f.stock?`<div class="s ${i.stock<=5?'low b':''}">Stock ${i.stock}${i.unit&&i.unit!=='pcs'?' '+U(i.unit):''}</div>`:''}<button class="s">Edit</button><button class="s">✕</button>`;
   const [e,x]=d.querySelectorAll('button');
-  e.onclick=()=>{$('in').value=i.name;$('ic').value=i.code||'';$('ip').value=i.price;$('ig').value=i.gst;$('is').value=i.stock;$('iu').value=i.unit||'pcs';$('addi').dataset.id=i.id;scrollTo(0,0)};
+  e.onclick=()=>{$('in').value=i.name;$('ic').value=i.code||'';$('ip').value=i.price;$('ig').value=i.gst;$('is').value=i.stock;$('iu').value=i.unit||'pcs';$('idsc').value=i.desc||'';$('addi').dataset.id=i.id;scrollTo(0,0)};
   x.onclick=()=>ask('Delete '+i.name+'?',()=>{db.items=db.items.filter(z=>z!==i);save();drawItems()});$('items').append(d)})}
+function drawDet(){const q=$('dsq').value.trim().toLowerCase(),L=db.items.filter(i=>!q||i.name.toLowerCase().includes(q)||(i.code||'').includes(q)),box=$('detl');
+ box.innerHTML=!db.items.length?'<div class="card mu">No items yet.</div>':!L.length?'<div class="card mu low">No items match your search.</div>':'';
+ const ln='display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-top:1px solid var(--bd)';
+ L.slice(0,100).forEach(i=>{const d=document.createElement('div');d.className='card';
+  d.innerHTML='<div style="font-size:22px;font-weight:800;line-height:1.25;word-break:break-word">'+esc(i.name)+'</div>'+
+   '<div style="'+ln+';margin-top:8px"><span class="mu">Price</span><b>'+R(i.price)+(i.unit&&i.unit!=='pcs'?' / '+U(i.unit):'')+'</b></div>'+
+   (i.code?'<div style="'+ln+'"><span class="mu">Barcode</span><b>'+esc(i.code)+'</b></div>':'')+
+   (db.f.gst&&+i.gst>0?'<div style="'+ln+'"><span class="mu">GST</span><b>'+i.gst+'%</b></div>':'')+
+   (i.desc?'<div style="border-top:1px solid var(--bd);padding-top:8px"><div class="mu">Description</div><div style="white-space:pre-wrap;word-break:break-word;margin-top:2px">'+esc(i.desc)+'</div></div>':'');
+  box.append(d)});
+ if(L.length>100)box.insertAdjacentHTML('beforeend','<div class="mu" style="padding:8px">Showing first 100 of '+L.length+' - search to narrow</div>')}
+$('dtb').onclick=()=>{tab='det';applyF();draw();scrollTo(0,0)};$('detb').onclick=()=>{tab='items';applyF();draw()};$('dsq').oninput=drawDet;
 function csvRows(t){const rows=[],d=t.includes('\t')?'\t':',';let r=[],c='',q=false;
  for(let i=0;i<t.length;i++){const ch=t[i];
   if(q){if(ch==='"'){if(t[i+1]==='"'){c+='"';i++}else q=false}else c+=ch}
@@ -400,9 +415,9 @@ $('pgo').onclick=()=>{const f=$('pf').value.trim().toLowerCase(),u=$('pu').value
   db.lastPrices=L.map(i=>({id:i.id,old:i.price}));L.forEach(i=>i.price=Math.max(0,Math.round((i.price+p)*100)/100));save();drawItems();drawBill();toast(L.length+' prices updated')})};
 $('pun').onclick=()=>{const u=db.lastPrices;if(!u||!u.length)return toast('Nothing to undo');u.forEach(x=>{const i=db.items.find(z=>z.id===x.id);if(i)i.price=x.old});db.lastPrices=[];save();drawItems();drawBill();toast('Last price change undone')};
 $('addi').onclick=()=>{const nm=v=>String(v).replace(/[,\s₹]/g,''),n=$('in').value.trim(),pv=nm($('ip').value),p=+pv;if(!n||pv===''||isNaN(p)||p<0)return alert('Enter name and price');
- const o={name:n,code:$('ic').value.trim(),price:p,gst:+nm($('ig').value)||0,stock:+nm($('is').value)||0,unit:$('iu').value},id=+$('addi').dataset.id;
+ const o={name:n,code:$('ic').value.trim(),price:p,gst:+nm($('ig').value)||0,stock:+nm($('is').value)||0,unit:$('iu').value},id=+$('addi').dataset.id;if(db.f.desc)o.desc=$('idsc').value.trim();
  if(id){Object.assign(db.items.find(i=>i.id===id),o);delete $('addi').dataset.id}else db.items.push({id:Date.now(),...o});
- ['in','ic','ip','is'].forEach(k=>$(k).value='');$('iu').value='pcs';save();drawItems();drawBill()};
+ ['in','ic','ip','is','idsc'].forEach(k=>$(k).value='');$('iu').value='pcs';save();drawItems();drawBill()};
 const phoneOf=c=>{const b=db.bills.filter(x=>x.cust===c&&x.phone).pop();return b?b.phone:''};
 function waTo(ph,t){let p=(ph||'').replace(/\D/g,'').replace(/^0+/,'');if(p.length===10)p='91'+p;window.open('https://wa.me/'+p+'?text='+encodeURIComponent(t),'_blank')}
 function stmtText(c,o){const bl=db.bills.filter(b=>b.cust===c&&dueOf(b)>0.005&&!b.cleared),py=db.pay.filter(p=>p.cust===c&&!p.cleared&&!p.void),ln='━━━━━━━━━━━━━━',dd=x=>new Date(x).toLocaleDateString('en-IN');
@@ -497,7 +512,7 @@ function drawHome(){const t=db.bills.filter(b=>sameDay(b.date));$('hi').textCont
  $('hs').textContent=R(t.reduce((s,b)=>s+b.total,0));$('hb').textContent=t.length;
  const T=[['bill','🧾','New bill','teal',1],['items','📦','Items','blue',can('items')],['cust','📒','Udhaar','amber',(db.f.udhaar||db.f.adv)],['rep','📊','Reports','violet',can('reports')]].filter(x=>x[4]);
  $('tiles').innerHTML='';T.forEach(x=>{const b=document.createElement('button');b.dataset.c=x[3];b.innerHTML='<i>'+x[1]+'</i><span>'+x[2]+'</span>';b.onclick=()=>{tab=x[0];applyF();draw()};$('tiles').append(b)})}
-function draw(){drawKnown();$('shop').textContent=db.shop;$('who').textContent=me.name;$('uav').textContent=(me.name.trim()[0]||'?').toUpperCase();$('urole').textContent=me.role;drawHome();drawBill();if(can('items'))drawItems();if(can('reports'))drawRep();if(owner())drawSet();drawCust()}
+function draw(){drawKnown();$('shop').textContent=db.shop;$('who').textContent=me.name;$('uav').textContent=(me.name.trim()[0]||'?').toUpperCase();$('urole').textContent=me.role;drawHome();drawBill();if(can('items'))drawItems();if(db.f.desc&&can('items'))drawDet();if(can('reports'))drawRep();if(owner())drawSet();drawCust()}
 /* ---------- cloud sync (one shop shared by several devices) ---------- */
 const QBSync=(()=>{
 const SYNC_URL='https://quickbillggs-default-rtdb.firebaseio.com';/* paste your Firebase Realtime Database URL here, e.g. https://quickbill-xxxx-default-rtdb.firebaseio.com */
