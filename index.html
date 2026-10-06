@@ -105,6 +105,12 @@ body.liquid .tiles button{box-shadow:0 10px 24px #0003,inset 0 1px 0 #ffffff66}
 <section id="t-bill">
  <div class="card" id="editbar" style="display:none"><div class="row"><div><b>✏️ Editing bill #<span id="editno"></span></b><div class="mu">Change items, customer or payment, then tap Save changes. Nothing is changed until you save.</div></div><button class="s" id="editx">Cancel edit</button></div></div>
  <div class="card"><input id="q" placeholder="Type item name to find it, or scan barcode" autocomplete="off"><div class="mu" id="qhint" style="margin-top:8px"></div><div class="chips" id="res"></div></div>
+ <div class="card" id="qacard"><div class="b">Quick add item</div><div class="mu" style="margin-bottom:4px">Not in your Items list? Type it here and it goes straight into this bill.</div>
+  <div class="row"><input id="qan" placeholder="Item name" autocomplete="off"></div>
+  <div class="row"><input id="qap" type="text" inputmode="decimal" placeholder="Price ₹ per unit"><input id="qaq" type="text" inputmode="decimal" placeholder="Qty" value="1" style="max-width:84px"><select id="qau" style="max-width:96px"><option value="pcs">pcs</option><option value="kg">kg</option><option value="l">litre</option></select></div>
+  <div class="row" id="qagrow"><input id="qag" type="text" inputmode="decimal" placeholder="GST %" value="0"></div>
+  <label class="t"><input type="checkbox" id="qas"> Also save to Items for next time</label>
+  <button class="pri big" id="qab" style="width:100%;margin-top:6px">Add to bill</button></div>
  <div class="card"><div id="cart"></div>
   <div id="discbox"><label class="t"><input type="checkbox" id="dchk"> Apply discount</label>
   <div class="row" id="dval" style="display:none"><span class="s mu">Discount ₹</span><input id="disc" type="number" min="0" value="0"></div></div>
@@ -222,7 +228,7 @@ function checkPin(){const hh=h(pv),u=db.users.filter(x=>x.pin===hh).sort((a,b)=>
  if(pv.length>=4){pv='';drawDots();toast('Wrong PIN');const A=$('authBody');A.classList.remove('shake');void A.offsetWidth;A.classList.add('shake')}}
 document.addEventListener('keydown',e=>{if(!$('auth').classList.contains('on')||!$('dots'))return;if(/^\d$/.test(e.key))press(e.key);else if(e.key==='Backspace')press('⌫')});
 /* ---- language (per phone): en / hi / hg ---- */
-const TR={"Home":["होम","Home"],"Bill":["बिल","Bill"],"Items":["सामान","Saman"],"Udhaar":["उधार","Udhaar"],"Reports":["रिपोर्ट","Report"],"Settings":["सेटिंग्स","Settings"],"Language":["भाषा","Bhasha"],
+const TR={"Quick add item":["झटपट सामान जोड़ें", "Quick add item"],"Not in your Items list? Type it here and it goes straight into this bill.":["सामान की सूची में नहीं है? यहाँ लिखें, सीधे इस बिल में जुड़ जाएगा।", "Items list mein nahi hai? Yahan likhein, seedha is bill mein judega."],"Item name":["सामान का नाम", "Item ka naam"],"Qty":["मात्रा", "Qty"],"Also save to Items for next time":["अगली बार के लिए सामान में भी सेव करें", "Agli baar ke liye Items mein bhi save karein"],"Add to bill":["बिल में जोड़ें", "Bill mein jodein"],"litre":["लीटर", "litre"],"Home":["होम","Home"],"Bill":["बिल","Bill"],"Items":["सामान","Saman"],"Udhaar":["उधार","Udhaar"],"Reports":["रिपोर्ट","Report"],"Settings":["सेटिंग्स","Settings"],"Language":["भाषा","Bhasha"],
 "Today's sales":["आज की बिक्री","Aaj ki bikri"],"Bills":["बिल","Bill"],"Total":["कुल","Total"],"Due":["बकाया","Baaki"],"GST included":["GST शामिल","GST shamil"],"Discount ₹":["छूट ₹","Discount ₹"],"Apply discount":["छूट लगाएं","Discount lagayein"],"Advance received ₹":["एडवांस मिला ₹","Advance mila ₹"],
 "Save bill":["बिल सेव करें","Bill save karein"],"Send bill via":["बिल भेजें","Bill bhejein"],"Print":["प्रिंट","Print"],"WhatsApp":["व्हाट्सऐप","WhatsApp"],"SMS":["एसएमएस","SMS"],"Close":["बंद करें","Band karein"],"Cancel":["रद्द करें","Cancel"],"OK":["ठीक है","OK"],"Save":["सेव करें","Save"],"Apply":["लागू करें","Apply"],"Logout":["लॉगआउट","Logout"],
 "Shop":["दुकान","Dukaan"],"Accounts":["खाते","Accounts"],"Appearance":["दिखावट","Look"],"Reset":["रीसेट","Reset"],"Owner":["मालिक","Malik"],"Cashier":["कैशियर","Cashier"],"Add account":["खाता जोड़ें","Account jodein"],"Change security password":["सुरक्षा पासवर्ड बदलें","Security password badlein"],"Export backup":["बैकअप डाउनलोड करें","Backup download karein"],"Restore backup":["बैकअप वापस लाएं","Backup restore karein"],
@@ -334,7 +340,7 @@ function drawBill(){const q=$('q').value.trim().toLowerCase();$('res').innerHTML
   d.innerHTML=`<div>${esc(l.name)}<div class="mu">${R(l.price)}${wt?'/'+U(l.unit):''}${db.f.gst?' · GST '+l.gst+'%':''}</div></div>`+(wt?`<div class="s row"><input class="wq" type="number" step="any" min="0" value="${l.qty}" style="width:76px"><span class="mu">${U(l.unit)}</span><button data-a="x">✕</button></div>`:`<div class="s row"><button data-a="-">−</button><b>${l.qty}</b><button data-a="+">+</button></div>`)+`<div class="s b r" style="min-width:64px">${R(l.price*l.qty)}</div>`;
   const wq=d.querySelector('.wq');if(wq)wq.onchange=()=>{const q=parseFloat(wq.value);if(q>0)l.qty=q;else cart.splice(i,1);drawBill()};
   d.querySelectorAll('button').forEach(b=>b.onclick=()=>{if(b.dataset.a==='x')cart.splice(i,1);else{l.qty+=b.dataset.a==='+'?1:-1;if(l.qty<1)cart.splice(i,1)}drawBill()});$('cart').append(d)});
- $('dval').style.display=$('dchk').checked?'':'none';
+ $('dval').style.display=$('dchk').checked?'':'none';{const g=$('qagrow');if(g)g.style.display=db.f.gst?'':'none'}
  const t=totals();$('gst').textContent=R(t.gst);$('tot').textContent=R(t.tot);{const a=advNow(t.tot),dv=t.tot-a;$('duerow').style.display=(db.f.due&&t.tot>0&&(a>0||$('mode').value==='Udhaar'))?'':'none';$('duev').textContent=R(dv)}drawQR()}
 const advNow=tot=>db.f.adv?Math.min(Math.max(+$('adv').value||0,0),tot):0;
 let autoN=false,autoP=false;
@@ -365,6 +371,24 @@ $('cn').oninput=()=>{autoN=false;const n=$('cn').value.trim().toLowerCase(),m=kn
  if(n&&hit.length===1&&(!$('cp').value||autoP)){$('cp').value=hit[0];autoP=true}
  else if(autoP){$('cp').value='';autoP=false}
  hint()};
+function quickAdd(){
+ const nm=$('qan').value.trim(),pr=parseFloat($('qap').value),qt=parseFloat($('qaq').value),un=$('qau').value,gs=db.f.gst?Math.max(0,parseFloat($('qag').value)||0):0;
+ if(!nm)return toast('Enter the item name');
+ if(!(pr>0))return toast('Enter the price');
+ if(!(qt>0))return toast('Enter the quantity');
+ const q=Math.round(qt*1000)/1000;let id=0,note='Added to bill',nm2=nm;
+ if($('qas').checked){
+  const ex=db.items.find(i=>i.name.trim().toLowerCase()===nm.toLowerCase()&&(i.unit||'pcs')===un);
+  if(ex){id=ex.id;nm2=ex.name;note='Already in Items - added to bill at the price you typed'}
+  else{id=Date.now();db.items.push({id,name:nm,price:pr,gst:gs,stock:q,code:'',unit:un});note='Added to bill and saved to Items'}
+ }
+ const ln={id,name:nm2,price:pr,gst:gs,unit:un,qty:q};if(!id)ln.custom=1;
+ cart.push(ln);save();
+ $('qan').value='';$('qap').value='';$('qaq').value='1';$('qas').checked=false;
+ drawBill();if(id&&typeof drawItems==='function'&&can('items'))drawItems();
+ toast(note);$('qan').focus()}
+$('qab').onclick=quickAdd;
+['qan','qap','qaq','qag'].forEach(x=>$(x).onkeydown=e=>{if(e.key==='Enter')quickAdd()});
 $('q').oninput=drawBill;$('disc').oninput=drawBill;$('adv').oninput=drawBill;$('dchk').onchange=drawBill;$('mode').onchange=drawBill;
 $('q').onkeydown=e=>{if(e.key!=='Enter')return;const v=$('q').value.trim().toLowerCase(),m=db.items.filter(i=>i.code===v||i.name.toLowerCase().includes(v));if(m.length===1)add(m[0])};
 $('save').onclick=(ev,force)=>{if(!cart.length)return alert('Add items first');
