@@ -69,18 +69,20 @@ button{transition:transform .08s,opacity .15s}button:active{transform:scale(.97)
 h1{font-weight:800;letter-spacing:-.3px}
 input:focus,select:focus{outline:2px solid var(--ac);outline-offset:-1px}
 #hs,#hb{font-size:26px!important}
+body.amoled{background:#000}body.amoled::before{display:none!important}
+.pals{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}.pal{display:flex;flex-direction:column;align-items:center;gap:5px;padding:8px 10px;border:2px solid var(--bd);border-radius:12px;background:var(--card);color:var(--tx);font-size:12px;min-width:74px}.pal.on{border-color:var(--ac)}.pal span{display:flex;gap:3px}.pal i{width:16px;height:16px;border-radius:50%;display:inline-block}
 /* liquid glass */
 body.liquid{--bg:#e4eef3;--card:rgba(255,255,255,.55);--in:rgba(255,255,255,.45);--bd:rgba(255,255,255,.7)}
 @media(prefers-color-scheme:dark){:root:not([data-theme="light"]) body.liquid{--bg:#0a1016;--card:rgba(28,34,44,.55);--in:rgba(255,255,255,.08);--bd:rgba(255,255,255,.14)}}
 :root[data-theme="dark"] body.liquid{--bg:#0a1016;--card:rgba(28,34,44,.55);--in:rgba(255,255,255,.08);--bd:rgba(255,255,255,.14)}
-body.liquid::before{content:"";position:fixed;inset:0;z-index:-1;background:radial-gradient(circle at 12% 8%,#2dd4bf99,transparent 45%),radial-gradient(circle at 88% 22%,#818cf899,transparent 45%),radial-gradient(circle at 45% 95%,#f472b680,transparent 50%)}
+body.liquid::before{content:"";position:fixed;inset:0;z-index:-1;background:radial-gradient(circle at 12% 8%,var(--g1,#2dd4bf99),transparent 45%),radial-gradient(circle at 88% 22%,var(--g2,#818cf899),transparent 45%),radial-gradient(circle at 45% 95%,var(--g3,#f472b680),transparent 50%)}
 body.liquid .card,body.liquid nav{-webkit-backdrop-filter:blur(22px) saturate(170%);backdrop-filter:blur(22px) saturate(170%);box-shadow:0 10px 32px #0000001f,inset 0 1px 0 #ffffffaa}
 body.liquid input,body.liquid select,body.liquid .chips button{-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
 body.liquid .ov{-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
 body.liquid #authBody{--card:rgba(255,255,255,.86)}
 @media(prefers-color-scheme:dark){:root:not([data-theme="light"]) body.liquid #authBody{--card:rgba(24,30,38,.82)}}
 :root[data-theme="dark"] body.liquid #authBody{--card:rgba(24,30,38,.82)}
-body.liquid nav button.on{background:linear-gradient(135deg,#14b8a6,var(--ac));box-shadow:0 4px 12px #0f766e55}
+body.liquid nav button.on{background:linear-gradient(135deg,color-mix(in srgb,var(--ac) 75%,#fff),var(--ac));box-shadow:0 4px 12px #0f766e55}
 body.liquid .tiles button{box-shadow:0 10px 24px #0003,inset 0 1px 0 #ffffff66}
 .hd{gap:10px}.hd h1{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .hr{display:flex;align-items:center;gap:8px;flex:0 0 auto}
@@ -150,7 +152,14 @@ body.liquid .tiles button{box-shadow:0 10px 24px #0003,inset 0 1px 0 #ffffff66}
   <div class="row"><button id="cpw">Change security password</button></div>
   <div class="row"><span class="mu">Language</span><select id="lsel2"><option value="en">English</option><option value="hi">हिन्दी</option><option value="hg">Hinglish</option></select></div>
   <div class="row"><button id="tview">View Terms &amp; Conditions</button></div></div>
- <div class="card"><div class="b">Appearance</div><label class="t"><input type="checkbox" id="liq"> Liquid glass look</label></div>
+ </details>
+<details class="grp"><summary>🎨 Theme &amp; colours</summary>
+<div class="card"><div class="b">Appearance</div>
+ <div class="row"><span class="mu">Mode</span><select id="tmode"><option value="auto">Automatic (phone setting)</option><option value="light">Light</option><option value="dark">Dark</option><option value="amoled">AMOLED black</option></select></div>
+ <div class="b" style="margin-top:10px">Colour palette</div><div id="pals" class="pals"></div>
+ <label class="t"><input type="checkbox" id="liq"> Liquid glass look</label>
+ <div class="mu">Theme settings are saved on this phone only.</div>
+ <div class="row"><button id="treset">Reset theme</button></div></div>
  </details>
 <details class="grp"><summary>🧾 Billing &amp; sending bills</summary>
 <div class="card"><div class="b">Switch features on or off</div><div id="feat"></div></div></details>
@@ -226,7 +235,7 @@ const TR={"Home":["होम","Home"],"Bill":["बिल","Bill"],"Items":["स�
 "Advance money received (at billing)":["एडवांस पैसा (बिल बनाते समय)","Advance paisa (billing ke time)"],"Show Due money":["बकाया दिखाएं","Baaki paisa dikhayein"],"Show Total when sending bills":["बिल भेजते समय कुल दिखाएं","Bill bhejte time Total dikhayein"],"PIN lock (ask for PIN when opening the app)":["PIN लॉक (ऐप खोलने पर PIN पूछें)","PIN lock (app kholne par PIN poochein)"],
 "Set up your shop in under a minute":["एक मिनट में अपनी दुकान सेट करें","Ek minute mein apni dukaan set karein"],"Your name":["आपका नाम","Aapka naam"],"Create 4-digit PIN":["4 अंकों का PIN बनाएं","4-digit PIN banayein"],"Security password":["सुरक्षा पासवर्ड","Security password"],"(needed to change UPI ID)":["(UPI ID बदलने के लिए ज़रूरी)","(UPI ID badalne ke liye zaroori)"],"(Optional)":["(वैकल्पिक)","(Optional)"],
 "Adding a UPI ID is optional. You can skip it and add it later in Settings.":["UPI ID डालना ज़रूरी नहीं है। आप इसे छोड़कर बाद में सेटिंग्स में जोड़ सकते हैं।","UPI ID daalna zaroori nahi hai. Aap ise chhod kar baad mein Settings mein add kar sakte hain."],"Create account & start":["खाता बनाएं और शुरू करें","Account banayein aur shuru karein"],"Connect to an existing shop":["मौजूदा दुकान से जुड़ें","Maujooda shop se judein"],"Enter your 4-digit PIN":["अपना 4 अंकों का PIN डालें","Apna 4-digit PIN daalein"],"Wrong PIN":["गलत PIN","Galat PIN"],
-"Received":["मिला","Mila"],"Edit":["बदलें","Badlein"],"Delete":["हटाएं","Hatayein"],"Saved":["सेव हो गया","Save ho gaya"],"Agree and continue":["सहमत हूँ, आगे बढ़ें","Agree karke aage badhein"],"Terms & Conditions":["नियम और शर्तें","Niyam aur shartein"],"View Terms & Conditions":["नियम और शर्तें देखें","Niyam aur shartein dekhein"],"I have read and agree to the Terms & Conditions":["मैंने नियम और शर्तें पढ़ ली हैं और मैं सहमत हूँ","Maine Terms & Conditions padh li hain aur main agree karta/karti hoon"],"Anti MDR UPI split (split UPI QR payments above ₹1999 into smaller QR payments)":["एंटी MDR UPI स्प्लिट (₹1999 से ऊपर के UPI QR भुगतान को छोटे QR में बाँटें)","Anti MDR UPI split (₹1999 se upar ke UPI QR payment ko chhote QR mein baantein)"],"Remind":["याद दिलाएं","Yaad dilayein"],"Statement":["स्टेटमेंट","Statement"],"✓ Payment received":["✓ पैसे मिल गए","✓ Payment mil gaya"],"Day close":["दिन का हिसाब","Din ka hisaab"],"Cash sales":["नकद बिक्री","Cash bikri"],"Advances":["एडवांस","Advance"],"Expected cash":["अपेक्षित नकद","Expected cash"],"Cash counted ₹":["गिना हुआ नकद ₹","Gina hua cash ₹"],"Check":["जाँचें","Check karein"],"Udhaar given":["उधार दिया","Udhaar diya"],"Udhaar received":["उधार मिला","Udhaar mila"],"All months":["सभी महीने","Saare mahine"],"Monthly report":["महीने की रिपोर्ट","Mahine ki report"],"Today":["आज","Aaj"],"Sales":["बिक्री","Bikri"],"Total sales":["कुल बिक्री","Total bikri"],"Bills made by":["बिल किसने बनाए","Bill kisne banaye"],"By payment mode":["भुगतान के तरीके से","Payment mode ke hisaab se"],"Low stock (≤5)":["कम स्टॉक (≤5)","Kam stock (≤5)"],"Top items":["सबसे ज़्यादा बिकने वाले","Sabse zyada bikne wale"],"Who took udhaar this month":["इस महीने उधार किसने लिया","Is mahine udhaar kisne liya"]};
+"Received":["मिला","Mila"],"Edit":["बदलें","Badlein"],"Delete":["हटाएं","Hatayein"],"Saved":["सेव हो गया","Save ho gaya"],"🎨 Theme & colours":["🎨 थीम और रंग","🎨 Theme aur rang"],"Mode":["मोड","Mode"],"Automatic (phone setting)":["ऑटोमैटिक (फोन की सेटिंग)","Automatic (phone ki setting)"],"Light":["लाइट","Light"],"Dark":["डार्क","Dark"],"AMOLED black":["AMOLED काला","AMOLED black"],"Colour palette":["रंग पैलेट","Colour palette"],"Reset theme":["थीम रीसेट करें","Theme reset karein"],"Theme settings are saved on this phone only.":["थीम की सेटिंग सिर्फ इसी फोन में सेव रहती है।","Theme ki setting sirf isi phone mein save rehti hai."],"Ocean":["समुद्र","Ocean"],"Forest":["जंगल","Forest"],"Sunset":["सूर्यास्त","Sunset"],"Royal":["शाही","Royal"],"Rose":["गुलाब","Gulab"],"Slate":["स्लेट","Slate"],"Teal":["टील","Teal"],"Agree and continue":["सहमत हूँ, आगे बढ़ें","Agree karke aage badhein"],"Terms & Conditions":["नियम और शर्तें","Niyam aur shartein"],"View Terms & Conditions":["नियम और शर्तें देखें","Niyam aur shartein dekhein"],"I have read and agree to the Terms & Conditions":["मैंने नियम और शर्तें पढ़ ली हैं और मैं सहमत हूँ","Maine Terms & Conditions padh li hain aur main agree karta/karti hoon"],"Anti MDR UPI split (split UPI QR payments above ₹1999 into smaller QR payments)":["एंटी MDR UPI स्प्लिट (₹1999 से ऊपर के UPI QR भुगतान को छोटे QR में बाँटें)","Anti MDR UPI split (₹1999 se upar ke UPI QR payment ko chhote QR mein baantein)"],"Remind":["याद दिलाएं","Yaad dilayein"],"Statement":["स्टेटमेंट","Statement"],"✓ Payment received":["✓ पैसे मिल गए","✓ Payment mil gaya"],"Day close":["दिन का हिसाब","Din ka hisaab"],"Cash sales":["नकद बिक्री","Cash bikri"],"Advances":["एडवांस","Advance"],"Expected cash":["अपेक्षित नकद","Expected cash"],"Cash counted ₹":["गिना हुआ नकद ₹","Gina hua cash ₹"],"Check":["जाँचें","Check karein"],"Udhaar given":["उधार दिया","Udhaar diya"],"Udhaar received":["उधार मिला","Udhaar mila"],"All months":["सभी महीने","Saare mahine"],"Monthly report":["महीने की रिपोर्ट","Mahine ki report"],"Today":["आज","Aaj"],"Sales":["बिक्री","Bikri"],"Total sales":["कुल बिक्री","Total bikri"],"Bills made by":["बिल किसने बनाए","Bill kisne banaye"],"By payment mode":["भुगतान के तरीके से","Payment mode ke hisaab se"],"Low stock (≤5)":["कम स्टॉक (≤5)","Kam stock (≤5)"],"Top items":["सबसे ज़्यादा बिकने वाले","Sabse zyada bikne wale"],"Who took udhaar this month":["इस महीने उधार किसने लिया","Is mahine udhaar kisne liya"]};
 let LANG=null;try{LANG=localStorage.getItem('qb_lang')}catch(e){}
 const li=()=>LANG==='hi'?0:LANG==='hg'?1:-1;
 function tn(n){const cur=n.nodeValue,o=(n.__t!==undefined&&cur===n.__t)?n.__o:cur;n.__o=o;const k=o.trim(),e=TR[k],i=li(),out=(e&&i>=0)?o.replace(k,e[i]):o;n.__t=out;if(out!==cur)n.nodeValue=out}
@@ -237,6 +246,31 @@ function setLang(v){LANG=v;try{localStorage.setItem('qb_lang',v)}catch(e){}trAll
 const LS=id=>'<select id="'+id+'" style="margin-bottom:10px"><option value="en">English</option><option value="hi">हिन्दी</option><option value="hg">Hinglish</option></select>';
 function bindLang(id){const s=$(id);if(!s)return;s.value=LANG||'en';s.onchange=e=>setLang(e.target.value)}
 function langScreen(){$('auth').classList.add('on');$('app').style.display='none';$('authBody').innerHTML='<div class="logo">🌐</div><h1 class="ah">Choose language<br>भाषा चुनें</h1><p class="as">Bhasha chunein</p>'+LS('lsel0')+'<button class="pri big" id="lgo">Continue / आगे बढ़ें</button>';bindLang('lsel0');$('lgo').onclick=()=>{if(!LANG)setLang('en');boot()}}
+const PAL={teal:{n:'Teal',ac:['#0f766e','#2dd4bf']},
+ ocean:{n:'Ocean',ac:['#1d4ed8','#60a5fa'],bg:['#eef4ff','#0c1424'],cd:'#131d33',g:['#3b82f699','#22d3ee99','#818cf880']},
+ forest:{n:'Forest',ac:['#15803d','#4ade80'],bg:['#eff7f1','#0d1a12'],cd:'#14241a',g:['#4ade8099','#2dd4bf99','#a3e63580']},
+ sunset:{n:'Sunset',ac:['#c2410c','#fb923c'],bg:['#fff4ec','#1a110c'],cd:'#261912',g:['#fb923c99','#f43f5e80','#fbbf2480']},
+ royal:{n:'Royal',ac:['#6d28d9','#a78bfa'],bg:['#f4f0ff','#130f1f'],cd:'#1c1630',g:['#a78bfa99','#818cf899','#f472b680']},
+ rose:{n:'Rose',ac:['#be185d','#f472b6'],bg:['#fff0f6','#1a0e14'],cd:'#271620',g:['#f472b699','#fb718599','#c084fc80']},
+ slate:{n:'Slate',ac:['#334155','#94a3b8'],bg:['#f1f3f5','#101214'],cd:'#1a1d21',g:['#94a3b866','#64748b66','#cbd5e166']}};
+function themeGet(){try{return Object.assign({mode:'auto',pal:'teal'},JSON.parse(localStorage.getItem('qb_theme')||'{}'))}catch(e){return{mode:'auto',pal:'teal'}}}
+function applyTheme(){const t=themeGet(),r=document.documentElement,b=document.body,liq=b.classList.contains('liquid');
+ const dark=t.mode==='amoled'||t.mode==='dark'||(t.mode==='auto'&&window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches);
+ if(t.mode==='auto')r.removeAttribute('data-theme');else r.setAttribute('data-theme',t.mode==='light'?'light':'dark');
+ b.classList.toggle('amoled',t.mode==='amoled');
+ const P=PAL[t.pal]||PAL.teal,V={'--ac':P.ac[dark?1:0]};
+ if(P.g){V['--g1']=P.g[0];V['--g2']=P.g[1];V['--g3']=P.g[2]}
+ if(t.mode==='amoled'){V['--bg']='#000';V['--card']=liq?'rgba(255,255,255,.06)':'#0b0b0b';V['--in']='rgba(255,255,255,.07)';V['--bd']='#262626';V['--mu']='#a3a3a3'}
+ else if(P.bg&&!liq){V['--bg']=P.bg[dark?1:0];if(dark)V['--card']=P.cd}
+ ['--ac','--g1','--g2','--g3','--bg','--card','--in','--bd','--mu'].forEach(k=>{if(V[k]){r.style.setProperty(k,V[k]);b.style.setProperty(k,V[k])}else{r.style.removeProperty(k);b.style.removeProperty(k)}});
+ const m=document.querySelector('meta[name=theme-color]');if(m)m.content=t.mode==='amoled'?'#000000':V['--ac']}
+function setTheme(p){try{localStorage.setItem('qb_theme',JSON.stringify(Object.assign(themeGet(),p)))}catch(e){}applyTheme();drawTheme()}
+function drawTheme(){const t=themeGet();$('tmode').value=t.mode;const w=$('pals');w.innerHTML='';
+ Object.keys(PAL).forEach(k=>{const P=PAL[k],b=document.createElement('button');b.className='pal'+(t.pal===k?' on':'');b.innerHTML='<span><i style="background:'+P.ac[0]+'"></i><i style="background:'+P.ac[1]+'"></i><i style="background:'+(P.g?P.g[0].slice(0,7):'#818cf8')+'"></i></span>'+P.n;b.onclick=()=>setTheme({pal:k});w.append(b)})}
+$('tmode').onchange=e=>setTheme({mode:e.target.value});
+$('treset').onclick=()=>{try{localStorage.removeItem('qb_theme')}catch(e){}applyTheme();drawTheme()};
+try{matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{if(themeGet().mode==='auto')applyTheme()})}catch(e){}
+applyTheme();
 const TERMS_V=1,TERMS_TEXT="QuickBill - Terms & Conditions\nVersion 1\n\n1. About QuickBill\nQuickBill is a simple billing, stock and customer-credit (Udhaar) tool for small shops. By using it you agree to these terms. If you do not agree, please do not use the app.\n\n2. Who is responsible for what\nYou, the shop owner, are responsible for the bills, prices, taxes and records you create. QuickBill is a helper, not an accountant. Please check every bill, GST rate, discount and total before you give it to a customer. You must follow the tax, billing and consumer laws that apply to your business.\n\n3. Your data\nYour shop data is saved on your own device. If you turn on shared-shop sync, an encrypted copy is stored online so your other devices can use it. Only people who have your shop ID and password can open it. Keep them safe and share them only with people you trust. A lost password cannot be recovered. You are responsible for taking regular backups with Export backup.\n\n4. Staff accounts\nThe owner decides who gets an account and what each person can do. The owner is responsible for what staff do in the app. Keep PINs private.\n\n5. UPI and payments\nQuickBill only creates payment QR codes from the UPI ID you enter. It does not process, hold or confirm payments. Always check that the money has reached your own bank or UPI app before handing over goods. Make sure your UPI ID is correct. QuickBill is not responsible for payments sent to a wrong or mistyped UPI ID.\nOptional payment tools, such as the Anti MDR UPI split, only change how QR codes are shown. Fees, limits and rules are set by NPCI, banks and payment apps, and they can change. You are responsible for checking that your use of these tools is allowed under the rules of your bank and payment provider.\n\n6. Messages to customers\nSending bills by WhatsApp or SMS opens those apps on your phone. You are responsible for sending messages only to customers who are happy to receive them, and for what the messages say.\n\n7. Resets, deletions and cancelled bills\nReset, delete and cancel actions can remove or change records, and some cannot be undone. The activity log, when turned on, records important actions but may not capture everything.\n\n8. No guarantee\nThe app is provided \"as is\". There is no promise that it will always work, be free of errors or always be available. Features may change or stop working.\n\n9. Limit of responsibility\nAs far as the law allows, the makers of QuickBill are not responsible for loss of data, loss of profit, wrong bills, tax or payment problems, or any other loss that comes from using the app.\n\n10. Changes to these terms\nThese terms may be updated. When they change, the app will ask you to read and agree again.\n\n11. Law\nThese terms are governed by the laws of India.";
 const termsOK=()=>{try{return localStorage.getItem('qb_terms')===String(TERMS_V)}catch(e){return true}};
 function termsBox(agree){const o=document.createElement('div');o.style.cssText='position:fixed;inset:0;z-index:999;background:var(--bg);color:var(--tx,inherit);overflow:auto;padding:16px;display:flex;flex-direction:column;box-sizing:border-box';
@@ -248,7 +282,7 @@ function logout(){me=null;try{sessionStorage.removeItem('qb_me')}catch(e){}cart=
 $('out').onclick=logout;$('out2').onclick=logout;
 const owner=()=>me&&me.role==='owner';
 /* ---------- features / nav ---------- */
-function applyF(){const f=db.f;document.body.classList.toggle('liquid',!!f.liquid);$('out').style.display=f.lock?'':'none';$('out2').parentNode.style.display=f.lock?'':'none';
+function applyF(){const f=db.f;document.body.classList.toggle('liquid',!!f.liquid);applyTheme();$('out').style.display=f.lock?'':'none';$('out2').parentNode.style.display=f.lock?'':'none';
  $('discbox').style.display=f.discount?'':'none';if(!f.discount){$('dchk').checked=false}
  $('gstrow').style.display=f.gst?'':'none';
  const modes=['Cash'].concat(f.upi?['UPI']:[],['Card'],f.udhaar?['Udhaar']:[]),cur=$('mode').value;
@@ -500,7 +534,7 @@ function dayCard(){const td=new Date().toDateString(),on=x=>new Date(x.date).toD
  return c}
 const _dr=drawRep;drawRep=function(){_dr();if(owner())$('rep').append(dayCard())};
 $('tview').onclick=()=>termsBox(null);
-function drawSet(){bindLang('lsel2');QBSync.box();$('liq').checked=!!db.f.liquid;$('sn').value=db.shop;$('su').value=db.upi;
+function drawSet(){bindLang('lsel2');drawTheme();QBSync.box();$('liq').checked=!!db.f.liquid;$('sn').value=db.shop;$('su').value=db.upi;
  $('feat').innerHTML='';Object.keys(FEATS).forEach(k=>{const l=document.createElement('label');l.className='t';l.innerHTML=`<input type="checkbox" ${db.f[k]?'checked':''}> ${FEATS[k]}`;
   l.firstChild.onchange=e=>{db.f[k]=e.target.checked;save();applyF();draw()};$('feat').append(l)});
  $('users').innerHTML='';db.users.forEach((u,i)=>{const d=document.createElement('div');d.className='row';d.innerHTML=`<div>${esc(u.name)} <span class="mu">${u.role}</span></div>${u===me?'<span class="s mu">you</span>':'<button class="s">Remove</button>'}`;
