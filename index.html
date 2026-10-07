@@ -228,7 +228,7 @@ function checkPin(){const hh=h(pv),u=db.users.filter(x=>x.pin===hh).sort((a,b)=>
  if(pv.length>=4){pv='';drawDots();toast('Wrong PIN');const A=$('authBody');A.classList.remove('shake');void A.offsetWidth;A.classList.add('shake')}}
 document.addEventListener('keydown',e=>{if(!$('auth').classList.contains('on')||!$('dots'))return;if(/^\d$/.test(e.key))press(e.key);else if(e.key==='Backspace')press('⌫')});
 /* ---- language (per phone): en / hi / hg ---- */
-const TR={"Quick add item":["झटपट सामान जोड़ें", "Quick add item"],"Not in your Items list? Type it here and it goes straight into this bill.":["सामान की सूची में नहीं है? यहाँ लिखें, सीधे इस बिल में जुड़ जाएगा।", "Items list mein nahi hai? Yahan likhein, seedha is bill mein judega."],"Item name":["सामान का नाम", "Item ka naam"],"Qty":["मात्रा", "Qty"],"Also save to Items for next time":["अगली बार के लिए सामान में भी सेव करें", "Agli baar ke liye Items mein bhi save karein"],"Add to bill":["बिल में जोड़ें", "Bill mein jodein"],"litre":["लीटर", "litre"],"Home":["होम","Home"],"Bill":["बिल","Bill"],"Items":["सामान","Saman"],"Udhaar":["उधार","Udhaar"],"Reports":["रिपोर्ट","Report"],"Settings":["सेटिंग्स","Settings"],"Language":["भाषा","Bhasha"],
+const TR={"Sync code":["सिंक कोड", "Sync code"],"Sync is not turned on for this shop yet. Send your sync code to the app owner.":["इस दुकान के लिए सिंक अभी चालू नहीं है। अपना सिंक कोड ऐप के मालिक को भेजें।", "Is dukaan ke liye sync abhi chalu nahi hai. Apna sync code app ke malik ko bhejein."],"Quick add item":["झटपट सामान जोड़ें", "Quick add item"],"Not in your Items list? Type it here and it goes straight into this bill.":["सामान की सूची में नहीं है? यहाँ लिखें, सीधे इस बिल में जुड़ जाएगा।", "Items list mein nahi hai? Yahan likhein, seedha is bill mein judega."],"Item name":["सामान का नाम", "Item ka naam"],"Qty":["मात्रा", "Qty"],"Also save to Items for next time":["अगली बार के लिए सामान में भी सेव करें", "Agli baar ke liye Items mein bhi save karein"],"Add to bill":["बिल में जोड़ें", "Bill mein jodein"],"litre":["लीटर", "litre"],"Home":["होम","Home"],"Bill":["बिल","Bill"],"Items":["सामान","Saman"],"Udhaar":["उधार","Udhaar"],"Reports":["रिपोर्ट","Report"],"Settings":["सेटिंग्स","Settings"],"Language":["भाषा","Bhasha"],
 "Today's sales":["आज की बिक्री","Aaj ki bikri"],"Bills":["बिल","Bill"],"Total":["कुल","Total"],"Due":["बकाया","Baaki"],"GST included":["GST शामिल","GST shamil"],"Discount ₹":["छूट ₹","Discount ₹"],"Apply discount":["छूट लगाएं","Discount lagayein"],"Advance received ₹":["एडवांस मिला ₹","Advance mila ₹"],
 "Save bill":["बिल सेव करें","Bill save karein"],"Send bill via":["बिल भेजें","Bill bhejein"],"Print":["प्रिंट","Print"],"WhatsApp":["व्हाट्सऐप","WhatsApp"],"SMS":["एसएमएस","SMS"],"Close":["बंद करें","Band karein"],"Cancel":["रद्द करें","Cancel"],"OK":["ठीक है","OK"],"Save":["सेव करें","Save"],"Apply":["लागू करें","Apply"],"Logout":["लॉगआउट","Logout"],
 "Shop":["दुकान","Dukaan"],"Accounts":["खाते","Accounts"],"Appearance":["दिखावट","Look"],"Reset":["रीसेट","Reset"],"Owner":["मालिक","Malik"],"Cashier":["कैशियर","Cashier"],"Add account":["खाता जोड़ें","Account jodein"],"Change security password":["सुरक्षा पासवर्ड बदलें","Security password badlein"],"Export backup":["बैकअप डाउनलोड करें","Backup download karein"],"Restore backup":["बैकअप वापस लाएं","Backup restore karein"],
@@ -630,7 +630,7 @@ function reuse(oa,na,key){const m=new Map((oa||[]).map(x=>[key(x),x]));
  return na.map(n=>{const o=m.get(key(n));if(!o)return n;
   if(!eq(o,n)){Object.keys(o).forEach(p=>{if(!(p in n))delete o[p]});Object.assign(o,n)}return o})}
 /* ---- state ---- */
-let cfg=null,base={},T={},KP=null,es=null,q=Promise.resolve(),pq=false,etagOK=true,state='off',ct=null,rt=null,dt=null;
+let cfg=null,base={},T={},KP=null,es=null,q=Promise.resolve(),pq=false,etagOK=true,state='off',ct=null,rt=null,dt=null,denied=false,asked=false;
 try{cfg=JSON.parse(localStorage.getItem(CK)||'null')}catch(e){cfg=null}
 try{const s=JSON.parse(localStorage.getItem(BK)||'null');if(s){base=s.c||{};T=s.t||{}}}catch(e){}
 const persistBase=()=>{try{localStorage.setItem(BK,JSON.stringify({c:base,t:T}))}catch(e){}};
@@ -695,14 +695,18 @@ async function pushChunk(n){
   try{if(await put(n,m,g.etag)){base[n]=cp(m);persistBase();return}}
   catch(e){if(e instanceof TypeError&&etagOK){etagOK=false;i--;continue}throw e}}
  throw new Error('conflict')}
+const isDenied=e=>/^http40[13]$/.test(String(e&&e.message));
+async function askApproval(){try{const k=await kp();await fetch(baseUrl(cfg.url)+'/requests/'+k.path.slice(0,10)+'.json',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({n:String(db.shop||'').slice(0,40),t:Date.now()})})}catch(e){}}
 async function doPush(){
- etagOK=true;let ok=true;const L=split(db);
+ etagOK=true;denied=false;let ok=true;const L=split(db);
  for(const n of new Set([...Object.keys(L),...Object.keys(base)])){
   const l=L[n]===undefined?(n==='core'?{}:[]):L[n];
   if(base[n]!==undefined?eq(l,base[n]):(n!=='core'&&!l.length))continue;
-  try{await pushChunk(n)}catch(e){ok=false}}
+  try{await pushChunk(n)}catch(e){ok=false;if(isDenied(e))denied=true}}
+ if(ok)denied=false;
  setState(ok?'on':'off');
- if(!ok){clearTimeout(rt);rt=setTimeout(pushAll,10000)}}
+ if(denied&&!asked){asked=true;askApproval()}
+ if(!ok){clearTimeout(rt);rt=setTimeout(pushAll,denied?300000:10000)}}
 function pushAll(){if(!cfg)return;setState('sync');if(pq)return;pq=true;q=q.then(()=>{pq=false;return doPush()}).catch(()=>{})}
 function changed(){if(!cfg)return;setState('sync');clearTimeout(ct);ct=setTimeout(pushAll,400)}
 async function remote(n,node){
@@ -725,17 +729,19 @@ function stop(){if(es){es.close();es=null}}
 function setState(s){state=s;const d=$('sdot');
  if(d){d.style.display=cfg?'inline-block':'none';d.style.background=s==='on'?'#16a34a':s==='sync'?'#f59e0b':'#dc2626';d.title=label()}
  const t=$('sst');if(t)t.textContent=label()}
-const label=()=>state==='on'?'Synced':state==='sync'?'Syncing…':'Offline - will sync when connected';
+const label=()=>state==='on'?'Synced':state==='sync'?'Syncing…':denied?'Sync is not turned on for this shop yet. Send your sync code to the app owner.':'Offline - will sync when connected';
 /* ---- connect / create / disconnect ---- */
 const rnd=n=>{const A='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',b=crypto.getRandomValues(new Uint8Array(n));return[...b].map(x=>A[x%A.length]).join('')};
 function setCfg(c){cfg=c;KP=null;try{localStorage.setItem(CK,JSON.stringify(c))}catch(e){}}
 function useUrl(el){const u=baseUrl(SYNC_URL||(el&&el.value)||(cfg&&cfg.url)||'');
  if(!/^https:\/\/.+/.test(u)){toast('Enter the Firebase database URL (starts with https://)');return null}return u}
 async function create(url){
- const c={url,id:rnd(8),pw:rnd(12)};setCfg(c);base={};T={};persistBase();
- try{await kp();const g=await get('core');if(g.obj)return create(url)}catch(e){setCfg(null);toast('Could not reach the database. Check the URL and your internet.');return false}
+ const c={url,id:rnd(8),pw:rnd(12)};setCfg(c);base={};T={};persistBase();denied=false;asked=false;
+ try{await kp();const g=await get('core');if(g.obj)return create(url)}catch(e){
+  if(isDenied(e)){denied=true;asked=true;await askApproval();setState('off');toast('Sync is not turned on for your shop yet');return true}
+  setCfg(null);toast('Could not reach the database. Check the URL and your internet.');return false}
  setState('sync');pushAll();await q;listen();
- if(state!=='on'){setCfg(null);base={};T={};persistBase();setState('off');toast('Could not save to the database. Check the rules and URL.');return false}
+ if(state!=='on'){if(denied){toast('Sync is not turned on for your shop yet');return true}setCfg(null);base={};T={};persistBase();setState('off');toast('Could not save to the database. Check the rules and URL.');return false}
  return true}
 async function join(url,id,pw){
  id=norm(id);pw=norm(pw);if(!id||!pw){toast('Enter the ID and password');return false}
@@ -747,8 +753,8 @@ async function join(url,id,pw){
   const ch={},tt={};for(const n of Object.keys(tree)){if(tree[n]&&tree[n].d){ch[n]=await dec(tree[n].d);tt[n]=tree[n].t}}
   const d=assemble(ch);Object.keys(db).forEach(k=>delete db[k]);Object.assign(db,d);persistDb();
   base=ch;T=tt;persistBase();setCfg(oc);setState('on');listen();return true
- }catch(e){cfg=old;KP=null;toast('Could not connect. Check the URL, ID, password and internet.');return false}}
-function disconnect(){stop();clearTimeout(ct);clearTimeout(rt);setCfg(null);try{localStorage.removeItem(CK);localStorage.removeItem(BK)}catch(e){}base={};T={};KP=null;cfg=null;setState('off')}
+ }catch(e){cfg=old;KP=null;toast(isDenied(e)?'Could not connect. Check the ID and password. If they are right, sync may not be turned on for this shop yet.':'Could not connect. Check the URL, ID, password and internet.');return false}}
+function disconnect(){stop();clearTimeout(ct);clearTimeout(rt);setCfg(null);try{localStorage.removeItem(CK);localStorage.removeItem(BK)}catch(e){}base={};T={};KP=null;cfg=null;denied=false;asked=false;setState('off')}
 /* ---- screens ---- */
 const copy=t=>{try{navigator.clipboard.writeText(t);toast('Copied')}catch(e){toast('Could not copy')}};
 function box(){const el=$('syncbox');if(!el)return;
@@ -757,9 +763,12 @@ function box(){const el=$('syncbox');if(!el)return;
   <div class="row"><div class="mu s">Status</div><div class="b" id="sst">${label()}</div></div>
   <div class="row"><div class="mu s">ID</div><div class="b">${fmt(cfg.id,4)}</div></div>
   <div class="row"><div class="mu s">Password</div><div class="b">${fmt(cfg.pw,4)}</div></div>
+  <div class="row"><div class="mu s">Sync code</div><div class="b" id="sy_code">…</div><button class="s" id="sy_cc">Copy</button></div>
   <div class="row"><button id="sy_c">Copy ID &amp; password</button><button id="sy_n">Sync now</button></div>
   <div class="row"><button class="dng" id="sy_d">Disconnect this device</button></div>
   <div class="mu">Type the ID and password on the other device under "Connect to an existing shop".</div>`;
+  kp().then(k=>{const e=$('sy_code');if(e)e.textContent=k.path.slice(0,10)}).catch(()=>{});
+  $('sy_cc').onclick=()=>kp().then(k=>copy(k.path.slice(0,10)));
   $('sy_c').onclick=()=>copy('QuickBill shop ID: '+fmt(cfg.id,4)+'\nPassword: '+fmt(cfg.pw,4));
   $('sy_n').onclick=()=>{pushAll();listen();toast('Syncing…')};
   $('sy_d').onclick=()=>ask('Disconnect this device? Its data stays here but stops syncing.',()=>{disconnect();box()})}
